@@ -9,9 +9,9 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ title, onBack, isRTL }) => {
   return (
-    <div className="bg-white shadow-sm border-b border-blue-100 sticky top-0 z-10">
-      <div className="max-w-md mx-auto px-4 pt-16 pb-4">
-        <div className="flex items-center justify-between">
+    <div className="bg-white shadow-sm border-b border-blue-100 sticky top-0 pt-12 z-10">
+      <div className="px-4 py-4">
+        <div className="flex items-center justify-between max-w-md mx-auto">
           <button
             onClick={onBack}
             className="p-2 rounded-lg hover:bg-blue-50 transition-colors"

@@ -1,34 +1,21 @@
 
 import React from 'react';
-import { PlusIcon, MinusIcon, QuestionMarkCircleIcon, ArrowLeftIcon } from './icons/HeroIcons';
-import { QuestionType } from '../types';
+import { PlusIcon, MinusIcon, QuestionMarkCircleIcon } from '../icons/HeroIcons';
+import { QuestionType, Language } from '../../types';
 import ChoiceButton from './ChoiceButton';
+import { Header } from '../Header';
 
 interface WelcomeScreenProps {
   onSelect: (type: 'increase' | QuestionType) => void;
   onBack: () => void;
   t: Record<string, string>;
+  lang: Language;
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSelect, onBack, t }) => {
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onSelect, onBack, t, lang }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      {/* Header with Back Button */}
-      <div className="bg-white shadow-sm border-b border-blue-100">
-        <div className="max-w-md mx-auto px-4 p-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onBack}
-              className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
-              aria-label={t.btn_back}
-            >
-              <ArrowLeftIcon className="w-6 h-6 text-blue-600" />
-            </button>
-            <h1 className="text-xl font-bold text-blue-800">{t.main_title}</h1>
-            <div className="w-10"></div> {/* Spacer for centering */}
-          </div>
-        </div>
-      </div>
+      <Header title={t.main_title} onBack={onBack} isRTL={lang === 'ar'} />
 
       {/* Content */}
       <div className="max-w-md mx-auto px-4 py-8">

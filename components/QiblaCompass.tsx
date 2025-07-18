@@ -157,35 +157,39 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
 
   if (compassState.error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center py-8">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
-            <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <p className="text-red-600 font-semibold mb-2">
-              {t.error_title || 'Error'}
-            </p>
-            <p className="text-red-500 text-sm mb-4">{compassState.error}</p>
-            
-            {/* Calibration Instructions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-              <h3 className="text-blue-800 font-semibold mb-2">
-                {t.calibration_instructions || 'Calibration Instructions'}
-              </h3>
-              <ul className="text-blue-700 text-sm text-left space-y-1">
-                <li>• {t.hold_device_flat || 'Hold your device flat and level'}</li>
-                <li>• {t.move_device_figure8 || 'Move your device in a figure-8 pattern'}</li>
-                <li>• {t.avoid_magnetic_interference || 'Stay away from metal objects and electronics'}</li>
-                <li>• {t.enable_location_services || 'Make sure location services are enabled'}</li>
-              </ul>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <Header title={t.qibla_compass || 'Qibla Compass'} onBack={onBack} isRTL={lang === 'ar'} />
+        
+        <div className="max-w-md mx-auto px-4 py-6">
+          <div className="text-center py-8">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+              <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <p className="text-red-600 font-semibold mb-2">
+                {t.error_title || 'Error'}
+              </p>
+              <p className="text-red-500 text-sm mb-4">{compassState.error}</p>
+              
+              {/* Calibration Instructions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <h3 className="text-blue-800 font-semibold mb-2">
+                  {t.calibration_instructions || 'Calibration Instructions'}
+                </h3>
+                <ul className="text-blue-700 text-sm text-left space-y-1">
+                  <li>• {t.hold_device_flat || 'Hold your device flat and level'}</li>
+                  <li>• {t.move_device_figure8 || 'Move your device in a figure-8 pattern'}</li>
+                  <li>• {t.avoid_magnetic_interference || 'Stay away from metal objects and electronics'}</li>
+                  <li>• {t.enable_location_services || 'Make sure location services are enabled'}</li>
+                </ul>
+              </div>
             </div>
+            
+            <button
+              onClick={retryInitialization}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors mb-4"
+            >
+              {t.retry || 'Try Again'}
+            </button>
           </div>
-          
-          <button
-            onClick={retryInitialization}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors mb-4"
-          >
-            {t.retry || 'Try Again'}
-          </button>
         </div>
       </div>
     );
