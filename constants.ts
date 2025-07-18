@@ -95,6 +95,23 @@ export const translations = {
         calibration_instructions: 'حرك جهازك في شكل رقم 8 لمعايرة البوصلة',
         location_required: 'الموقع مطلوب لتحديد اتجاه القبلة',
         compass_not_supported: 'البوصلة غير مدعومة في هذا الجهاز',
+        
+        // Tasbih translations
+        tasbih_title: 'التسبيح',
+        settings: 'الإعدادات',
+        history: 'التاريخ',
+        selectDhikr: 'اختر الذكر',
+        goal: 'الهدف',
+        of: 'من',
+        remaining: 'متبقي',
+        goalCompleted: 'تم إكمال الهدف!',
+        tap: 'اضغط',
+        reset: 'إعادة تعيين',
+        confirmReset: 'تأكيد إعادة التعيين',
+        resetWarning: 'هل أنت متأكد من إعادة تعيين العداد؟ سيتم حفظ تقدمك الحالي في التاريخ.',
+        cancel: 'إلغاء',
+        noHistory: 'لا يوجد تاريخ حتى الآن',
+        back: 'رجوع',
     },
     en: {
         main_title: "Sahw Assistant",
@@ -191,5 +208,22 @@ export const translations = {
         calibration_instructions: 'Move your device in a figure-8 pattern to calibrate the compass',
         location_required: 'Location required for qibla direction',
         compass_not_supported: 'Compass not supported on this device',
+        
+        // Tasbih translations
+        tasbih_title: 'Digital Tasbih',
+        settings: 'Settings',
+        history: 'History',
+        selectDhikr: 'Select Dhikr',
+        goal: 'Goal',
+        of: 'of',
+        remaining: 'remaining',
+        goalCompleted: 'Goal Completed!',
+        tap: 'TAP',
+        reset: 'Reset',
+        confirmReset: 'Confirm Reset',
+        resetWarning: 'Are you sure you want to reset the counter? Your current progress will be saved to history.',
+        cancel: 'Cancel',
+        noHistory: 'No history yet',
+        back: 'Back',
     }
 };

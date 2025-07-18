@@ -92,7 +92,7 @@ export const MainNavigationScreen: React.FC<MainNavigationScreenProps> = ({
       description: t.tasbihDesc,
       icon: '📿',
       color: 'from-amber-500 to-amber-600',
-      available: false
+      available: true
     },
     {
       id: 'mosques' as View,

@@ -10,6 +10,7 @@ import { MainNavigationScreen } from './components/MainNavigationScreen';
 import PrayerTimesScreen from './components/PrayerTimesScreen';
 import QiblaCompass from './components/QiblaCompass';
 import { IslamicCalendarScreen } from './components/IslamicCalendarScreen';
+import TasbihScreen from './components/TasbihScreen';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('ar');
@@ -82,6 +83,10 @@ export default function App() {
 
       {view === 'calendar' && (
         <IslamicCalendarScreen language={lang} onBack={handleBack} />
+      )}
+
+      {view === 'tasbih' && (
+        <TasbihScreen lang={lang} onBack={handleBack} t={currentTranslation} />
       )}
 
       {view === 'welcome' && (
