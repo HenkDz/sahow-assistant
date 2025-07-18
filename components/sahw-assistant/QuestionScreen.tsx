@@ -1,17 +1,18 @@
 
 import React from 'react';
-import { QuestionType, ResultKey } from '../types';
+import { QuestionType, ResultKey, Language } from '../../types';
 import ChoiceButton from './ChoiceButton';
-import { ArrowLeftIcon } from './icons/HeroIcons';
+import { Header } from '../Header';
 
 interface QuestionScreenProps {
   questionType: QuestionType | null;
   onSelect: (key: ResultKey) => void;
   onBack: () => void;
   t: Record<string, string>;
+  lang: Language;
 }
 
-const QuestionScreen: React.FC<QuestionScreenProps> = ({ questionType, onSelect, onBack, t }) => {
+const QuestionScreen: React.FC<QuestionScreenProps> = ({ questionType, onSelect, onBack, t, lang }) => {
   if (!questionType) return null;
   const isDecrease = questionType === 'decrease';
   
@@ -30,22 +31,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({ questionType, onSelect,
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      {/* Header with Back Button */}
-      <div className="bg-white shadow-sm border-b border-blue-100">
-        <div className="max-w-md mx-auto px-4 p-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onBack}
-              className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
-              aria-label={t.btn_back}
-            >
-              <ArrowLeftIcon className="w-6 h-6 text-blue-600" />
-            </button>
-            <h1 className="text-xl font-bold text-blue-800">{t[questionKey]}</h1>
-            <div className="w-10"></div> {/* Spacer for centering */}
-          </div>
-        </div>
-      </div>
+      <Header title={t[questionKey]} onBack={onBack} isRTL={lang === 'ar'} />
 
       {/* Content */}
       <div className="max-w-md mx-auto px-4 py-8">

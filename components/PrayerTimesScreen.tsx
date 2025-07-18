@@ -31,7 +31,6 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
   const [weeklyTimes, setWeeklyTimes] = useState<PrayerTimes[]>([]);
   const [showManualLocationInput, setShowManualLocationInput] = useState(false);
   const [showLocationPermissionModal, setShowLocationPermissionModal] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!preferences.location) {
@@ -43,16 +42,13 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
 
   const handleLocationSetup = async () => {
     setLoading(true);
-    setLocationError(null);
 
     try {
       const result = await locationService.getCurrentLocation();
       
       if (result.success && result.location) {
         setLocation(result.location);
-        setLocationError(null);
       } else if (result.error) {
-        setLocationError(result.error.message);
         // Show appropriate modal based on error type
         if (result.error.code === 1) { // Permission denied
           setShowLocationPermissionModal(true);
@@ -62,7 +58,6 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
         }
       }
     } catch (err) {
-      setLocationError('Failed to get location. Please set manually.');
       setShowManualLocationInput(true);
     } finally {
       setLoading(false);
@@ -108,12 +103,6 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
     setLocation(location);
     locationService.setManualLocation(location);
     setShowManualLocationInput(false);
-    setLocationError(null);
-  };
-
-  const handleLocationPermissionGranted = async () => {
-    setShowLocationPermissionModal(false);
-    await handleLocationSetup();
   };
 
   const handleLocationPermissionDenied = () => {
