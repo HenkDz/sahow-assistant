@@ -4,6 +4,7 @@ import { QiblaService, QiblaResult, DeviceOrientationResult } from '../services/
 import { qiblaService } from '../services/QiblaService';
 import { locationService } from '../services/LocationService';
 import { ArrowLeftIcon, MapPinIcon, ExclamationTriangleIcon, InformationCircleIcon } from './icons/HeroIcons';
+import { Header } from './Header';
 
 interface QiblaCompassProps {
   onBack: () => void;
@@ -140,84 +141,76 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
 
   if (compassState.isLoading) {
     return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
-        <p className="text-slate-600 font-semibold">
-          {t.loading_qibla || 'Finding Qibla direction...'}
-        </p>
-        <p className="text-slate-500 text-sm mt-2">
-          {t.getting_location || 'Getting your location and calculating direction to Mecca'}
-        </p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-semibold">
+            {t.loading_qibla || 'Finding Qibla direction...'}
+          </p>
+          <p className="text-slate-500 text-sm mt-2">
+            {t.getting_location || 'Getting your location and calculating direction to Mecca'}
+          </p>
+        </div>
       </div>
     );
   }
 
   if (compassState.error) {
     return (
-      <div className="text-center py-8">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
-          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 font-semibold mb-2">
-            {t.error_title || 'Error'}
-          </p>
-          <p className="text-red-500 text-sm mb-4">{compassState.error}</p>
-          
-          {/* Calibration Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-            <h3 className="text-blue-800 font-semibold mb-2">
-              {t.calibration_instructions || 'Calibration Instructions'}
-            </h3>
-            <ul className="text-blue-700 text-sm text-left space-y-1">
-              <li>• {t.hold_device_flat || 'Hold your device flat and level'}</li>
-              <li>• {t.move_device_figure8 || 'Move your device in a figure-8 pattern'}</li>
-              <li>• {t.avoid_magnetic_interference || 'Stay away from metal objects and electronics'}</li>
-              <li>• {t.enable_location_services || 'Make sure location services are enabled'}</li>
-            </ul>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center py-8">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+            <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 font-semibold mb-2">
+              {t.error_title || 'Error'}
+            </p>
+            <p className="text-red-500 text-sm mb-4">{compassState.error}</p>
+            
+            {/* Calibration Instructions */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+              <h3 className="text-blue-800 font-semibold mb-2">
+                {t.calibration_instructions || 'Calibration Instructions'}
+              </h3>
+              <ul className="text-blue-700 text-sm text-left space-y-1">
+                <li>• {t.hold_device_flat || 'Hold your device flat and level'}</li>
+                <li>• {t.move_device_figure8 || 'Move your device in a figure-8 pattern'}</li>
+                <li>• {t.avoid_magnetic_interference || 'Stay away from metal objects and electronics'}</li>
+                <li>• {t.enable_location_services || 'Make sure location services are enabled'}</li>
+              </ul>
+            </div>
           </div>
+          
+          <button
+            onClick={retryInitialization}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors mb-4"
+          >
+            {t.retry || 'Try Again'}
+          </button>
         </div>
-        
-        <button
-          onClick={retryInitialization}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition-colors mb-4"
-        >
-          {t.retry || 'Try Again'}
-        </button>
-        
-        <button
-          onClick={onBack}
-          className="flex items-center justify-center gap-2 w-full text-slate-600 font-semibold hover:text-green-600 transition-colors"
-        >
-          <ArrowLeftIcon className="w-5 h-5" />
-          <span>{t.btn_back || 'Back'}</span>
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pt-20 px-4 pb-8">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-green-600 mb-2">
-          {t.qibla_compass || 'Qibla Compass'}
-        </h1>
-        
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <Header title={t.qibla_compass || 'Qibla Compass'} onBack={onBack} isRTL={lang === 'ar'} />
+      
+      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Location Info */}
-        <div className="flex items-center justify-center gap-2 text-slate-600 mb-4">
+        <div className="flex items-center justify-center gap-2 text-blue-700 mb-4">
           <MapPinIcon className="w-4 h-4" />
           <span className="text-sm">{compassState.locationName}</span>
         </div>
 
         {/* Distance to Mecca */}
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-          <p className="text-green-600 text-sm font-semibold mb-1">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+          <p className="text-blue-600 text-sm font-semibold mb-1">
             {t.distance_to_mecca || 'Distance to Mecca'}
           </p>
-          <p className="text-green-800 text-xl font-bold">
+          <p className="text-blue-800 text-xl font-bold">
             {formatDistance(compassState.distance)}
           </p>
         </div>
-      </div>
 
       {/* Compass */}
       <div className="relative">
@@ -361,15 +354,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
           {t.qibla_description || 'The Qibla is the direction Muslims face during prayer, pointing towards the Kaaba in Mecca, Saudi Arabia. This compass calculates the precise direction from your current location.'}
         </p>
       </div>
-
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="flex items-center justify-center gap-2 w-full mt-6 text-slate-600 font-semibold hover:text-green-600 transition-colors"
-      >
-        <ArrowLeftIcon className="w-5 h-5" />
-        <span>{t.btn_back || 'Back'}</span>
-      </button>
+      </div>
     </div>
   );
 };

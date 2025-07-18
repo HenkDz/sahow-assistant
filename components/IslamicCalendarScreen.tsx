@@ -3,6 +3,7 @@ import { IslamicCalendarService } from '../services/IslamicCalendarService';
 import { IslamicDate, Language } from '../types';
 import { CalendarEventCard } from './CalendarEventCard';
 import { RamadanTimesCard } from './RamadanTimesCard';
+import { Header } from './Header';
 
 interface IslamicCalendarScreenProps {
   language: Language;
@@ -93,60 +94,42 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-emerald-700 font-medium">{t.loading}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-blue-700 font-medium">{t.loading}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 ${isRTL ? 'rtl' : 'ltr'}`}>
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-emerald-100">
-        <div className="max-w-md mx-auto px-4 pt-16 pb-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onBack}
-              className="p-2 rounded-lg hover:bg-emerald-50 transition-colors"
-              aria-label={t.back}
-            >
-              <svg 
-                className={`w-6 h-6 text-emerald-600 ${isRTL ? 'rotate-180' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-xl font-bold text-emerald-800">{t.title}</h1>
-            <button
-              onClick={navigateToToday}
-              className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-200 transition-colors"
-            >
-              {t.today}
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 ${isRTL ? 'rtl' : 'ltr'}`}>
+      <Header title={t.title} onBack={onBack} isRTL={isRTL} />
+      
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+        {/* Today Button */}
+        <div className="text-center">
+          <button
+            onClick={navigateToToday}
+            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
+          >
+            {t.today}
+          </button>
+        </div>
         {/* Current Date Display */}
         {islamicDate && (
-          <div className="bg-white rounded-xl shadow-sm border border-emerald-100 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-6">
             <div className="text-center space-y-3">
               <div>
-                <p className="text-sm text-emerald-600 font-medium mb-1">{t.hijri}</p>
-                <p className="text-2xl font-bold text-emerald-800">
+                <p className="text-sm text-blue-600 font-medium mb-1">{t.hijri}</p>
+                <p className="text-2xl font-bold text-blue-800">
                   {IslamicCalendarService.formatIslamicDate(islamicDate, language)}
                 </p>
               </div>
-              <div className="border-t border-emerald-100 pt-3">
-                <p className="text-sm text-emerald-600 font-medium mb-1">{t.gregorian}</p>
-                <p className="text-lg text-emerald-700">
+              <div className="border-t border-blue-100 pt-3">
+                <p className="text-sm text-blue-600 font-medium mb-1">{t.gregorian}</p>
+                <p className="text-lg text-blue-700">
                   {formatGregorianDate(islamicDate.gregorianDate)}
                 </p>
               </div>
@@ -155,14 +138,14 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
         )}
 
         {/* Month Navigation */}
-        <div className="flex items-center justify-between bg-white rounded-xl shadow-sm border border-emerald-100 p-4">
+        <div className="flex items-center justify-between bg-white rounded-xl shadow-sm border border-blue-100 p-4">
           <button
             onClick={() => navigateMonth('prev')}
-            className="p-2 rounded-lg hover:bg-emerald-50 transition-colors"
+            className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
             aria-label={t.previousMonth}
           >
             <svg 
-              className={`w-5 h-5 text-emerald-600 ${isRTL ? 'rotate-180' : ''}`} 
+              className={`w-5 h-5 text-blue-600 ${isRTL ? 'rotate-180' : ''}`} 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -172,7 +155,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
           </button>
           
           <div className="text-center">
-            <p className="text-lg font-semibold text-emerald-800">
+            <p className="text-lg font-semibold text-blue-800">
               {islamicDate && IslamicCalendarService.getHijriMonthName(
                 IslamicCalendarService.hijriMonthNames.indexOf(islamicDate.hijriMonth) + 1,
                 language
@@ -182,11 +165,11 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
           
           <button
             onClick={() => navigateMonth('next')}
-            className="p-2 rounded-lg hover:bg-emerald-50 transition-colors"
+            className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
             aria-label={t.nextMonth}
           >
             <svg 
-              className={`w-5 h-5 text-emerald-600 ${isRTL ? '' : 'rotate-180'}`} 
+              className={`w-5 h-5 text-blue-600 ${isRTL ? '' : 'rotate-180'}`} 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -197,7 +180,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
         </div>
 
         {/* Calendar Grid */}
-        <div className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-4">
           <div className="grid grid-cols-7 gap-2">
             {monthDates.map((date, index) => {
               const isToday = date.gregorianDate.toDateString() === new Date().toDateString();
@@ -209,10 +192,10 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
                   className={`
                     aspect-square flex flex-col items-center justify-center p-1 rounded-lg text-sm
                     ${isToday 
-                      ? 'bg-emerald-600 text-white font-bold' 
+                      ? 'bg-blue-600 text-white font-bold' 
                       : hasEvents 
-                        ? 'bg-emerald-100 text-emerald-800 font-medium' 
-                        : 'text-emerald-600 hover:bg-emerald-50'
+                        ? 'bg-blue-100 text-blue-800 font-medium' 
+                        : 'text-blue-600 hover:bg-blue-50'
                     }
                     transition-colors cursor-pointer
                   `}
@@ -220,7 +203,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
                 >
                   <span className="text-xs">{date.hijriDay}</span>
                   {hasEvents && (
-                    <div className={`w-1 h-1 rounded-full mt-1 ${isToday ? 'bg-white' : 'bg-emerald-500'}`} />
+                    <div className={`w-1 h-1 rounded-full mt-1 ${isToday ? 'bg-white' : 'bg-blue-500'}`} />
                   )}
                 </div>
               );
@@ -231,7 +214,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
         {/* Events for Current Date */}
         {islamicDate && islamicDate.events && islamicDate.events.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-emerald-800">{t.events}</h2>
+            <h2 className="text-lg font-semibold text-blue-800">{t.events}</h2>
             {islamicDate.events.map((eventName, index) => {
               const eventDetails = IslamicCalendarService.getDetailedIslamicEventsForDate(
                 IslamicCalendarService.hijriMonthNames.indexOf(islamicDate.hijriMonth) + 1,
@@ -262,12 +245,12 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
         {/* No Events Message */}
         {islamicDate && (!islamicDate.events || islamicDate.events.length === 0) && (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <p className="text-emerald-600">{t.noEvents}</p>
+            <p className="text-blue-600">{t.noEvents}</p>
           </div>
         )}
       </div>

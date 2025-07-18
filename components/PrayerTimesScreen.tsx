@@ -8,6 +8,7 @@ import PrayerTimeCard from './PrayerTimeCard';
 import ManualLocationInput from './ManualLocationInput';
 import LocationPermissionModal from './LocationPermissionModal';
 import { ArrowLeftIcon, MapPinIcon, CalendarIcon } from './icons/HeroIcons';
+import { Header } from './Header';
 
 interface PrayerTimesScreenProps {
   onBack: () => void;
@@ -170,16 +171,13 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
   }
 
   return (
-    <div className="space-y-6 pt-20 px-4 pb-8">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-blue-600 mb-2">
-          {t.prayer_times_title || 'Prayer Times'}
-        </h1>
-        
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <Header title={t.prayer_times_title || 'Prayer Times'} onBack={onBack} isRTL={lang === 'ar'} />
+      
+      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Location Info */}
         {preferences.location && (
-          <div className="flex items-center justify-center gap-2 text-slate-600 mb-4">
+          <div className="flex items-center justify-center gap-2 text-blue-700 mb-4">
             <MapPinIcon className="w-4 h-4" />
             <span className="text-sm">
               {preferences.location.city}, {preferences.location.country}
@@ -188,36 +186,35 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
         )}
 
         {/* Date Navigation */}
-        <div className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm border border-blue-100">
           <button
             onClick={() => navigateDate('prev')}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
             aria-label="Previous day"
           >
-            <ArrowLeftIcon className="w-5 h-5 text-slate-600" />
+            <ArrowLeftIcon className="w-5 h-5 text-blue-600" />
           </button>
           
           <div className="flex items-center gap-2">
             <CalendarIcon className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-slate-800">
+            <span className="font-semibold text-blue-800">
               {formatDate(selectedDate)}
             </span>
           </div>
           
           <button
             onClick={() => navigateDate('next')}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
             aria-label="Next day"
           >
-            <ArrowLeftIcon className="w-5 h-5 text-slate-600 rotate-180" />
+            <ArrowLeftIcon className="w-5 h-5 text-blue-600 rotate-180" />
           </button>
         </div>
-      </div>
 
       {/* Today's Prayer Times */}
       {currentPrayerTimes && (
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-          <h2 className="text-xl font-bold text-slate-800 mb-4 text-center">
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100">
+          <h2 className="text-xl font-bold text-blue-800 mb-4 text-center">
             {t.todays_prayers || "Today's Prayers"}
           </h2>
           <PrayerTimeCard 
@@ -231,8 +228,8 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
 
       {/* Weekly View */}
       {weeklyTimes.length > 0 && (
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-          <h2 className="text-xl font-bold text-slate-800 mb-4 text-center">
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100">
+          <h2 className="text-xl font-bold text-blue-800 mb-4 text-center">
             {t.weekly_prayers || 'Weekly Prayer Times'}
           </h2>
           <div className="space-y-3">
@@ -245,7 +242,7 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
                     : 'border-slate-200 bg-slate-50'
                 }`}
               >
-                <div className="text-sm font-semibold text-slate-600 mb-2">
+                <div className="text-sm font-semibold text-blue-700 mb-2">
                   {formatDate(dayTimes.date)}
                 </div>
                 <PrayerTimeCard 
@@ -257,48 +254,6 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
                 />
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="flex items-center justify-center gap-2 w-full mt-6 text-slate-600 font-semibold hover:text-blue-600 transition-colors"
-      >
-        <ArrowLeftIcon className="w-5 h-5" />
-        <span>{t.btn_back || 'Back'}</span>
-      </button>
-
-      {/* Location Error with Manual Input Option */}
-      {locationError && !preferences.location && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPinIcon className="w-8 h-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {t.location_error_title || 'Location Required'}
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                {locationError}
-              </p>
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={() => setShowManualLocationInput(true)}
-                className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors duration-200"
-              >
-                {t.btn_set_location_manually || 'Set Location Manually'}
-              </button>
-              <button
-                onClick={handleLocationSetup}
-                className="w-full bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
-              >
-                {t.btn_try_again || 'Try Again'}
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -316,9 +271,12 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
       <LocationPermissionModal
         isOpen={showLocationPermissionModal}
         onClose={handleLocationPermissionDenied}
-        onPermissionGranted={handleLocationPermissionGranted}
+        onRetry={handleLocationSetup}
+        onManualInput={() => setShowManualLocationInput(true)}
+        error={null}
         t={t}
       />
+      </div>
     </div>
   );
 };
