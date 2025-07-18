@@ -32,7 +32,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({ questionType, onSelect,
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       {/* Header with Back Button */}
       <div className="bg-white shadow-sm border-b border-blue-100">
-        <div className="max-w-md mx-auto px-4 pt-16 pb-4">
+        <div className="max-w-md mx-auto px-4 p-4">
           <div className="flex items-center justify-between">
             <button
               onClick={onBack}

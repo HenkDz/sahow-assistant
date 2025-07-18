@@ -68,7 +68,7 @@ export default function App() {
         {/* Safe area for Android status bar */}
         <div className="fixed top-0 left-0 right-0 h-12 bg-transparent z-40" />
         <div className="fixed top-16 right-4 z-50">
-          <LanguageSwitcher currentLang={lang} setLang={setLang} />
+          {/*<LanguageSwitcher currentLang={lang} setLang={setLang} />*/}
         </div>
 
         {view === 'main-navigation' && (
@@ -95,7 +95,7 @@ export default function App() {
     <div className={`min-h-screen text-slate-800 flex flex-col items-center p-4 pt-24 transition-all duration-300 ${lang === 'ar' ? 'font-[Tajawal]' : 'font-[Inter]'}`}>
       <div className="w-full max-w-md">
         <header className="flex justify-center mb-6">
-          <LanguageSwitcher currentLang={lang} setLang={setLang} />
+          {/*<LanguageSwitcher currentLang={lang} setLang={setLang} />*/}
         </header>
         <main className="grid">
           <Transition show={view === 'welcome'}>
