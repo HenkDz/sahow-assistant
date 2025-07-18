@@ -62,7 +62,7 @@ export default function App() {
   const currentTranslation = translations[lang];
 
   // Render full-screen views without the container wrapper
-  if (view === 'main-navigation' || view === 'prayer-times' || view === 'qibla' || view === 'calendar' || view === 'welcome' || view === 'question' || view === 'result') {
+  if (view === 'main-navigation' || view === 'prayer-times' || view === 'qibla' || view === 'calendar') {
     return (
       <div className={`min-h-screen ${lang === 'ar' ? 'font-[Tajawal]' : 'font-[Inter]'}`}>
         {/* Safe area for Android status bar */}
@@ -86,29 +86,6 @@ export default function App() {
         {view === 'calendar' && (
           <IslamicCalendarScreen language={lang} onBack={handleBack} />
         )}
-
-        {view === 'welcome' && (
-          <WelcomeScreen onSelect={handleWelcomeSelect} onBack={handleBack} t={currentTranslation} />
-        )}
-
-        {view === 'question' && (
-          <QuestionScreen
-            questionType={questionType}
-            onSelect={handleQuestionSelect}
-            onBack={handleBack}
-            t={currentTranslation}
-          />
-        )}
-
-        {view === 'result' && (
-          <ResultScreen
-            resultKey={resultKey}
-            onStartOver={handleStartOver}
-            onBack={handleBack}
-            t={currentTranslation}
-            lang={lang}
-          />
-        )}
       </div>
     );
   }
@@ -122,7 +99,7 @@ export default function App() {
         </header>
         <main className="grid">
           <Transition show={view === 'welcome'}>
-            <WelcomeScreen onSelect={handleWelcomeSelect} t={currentTranslation} />
+            <WelcomeScreen onSelect={handleWelcomeSelect} onBack={handleBack} t={currentTranslation} />
           </Transition>
           <Transition show={view === 'question'}>
             <QuestionScreen
@@ -136,6 +113,7 @@ export default function App() {
             <ResultScreen
               resultKey={resultKey}
               onStartOver={handleStartOver}
+              onBack={handleBack}
               t={currentTranslation}
               lang={lang}
             />
