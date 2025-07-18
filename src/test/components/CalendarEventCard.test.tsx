@@ -1,0 +1,74 @@
+import React from 'react';
+import { render } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { CalendarEventCard } from '../../../components/CalendarEventCard';
+
+describe('CalendarEventCard', () => {
+  const mockEvent = {
+    name: 'Islamic New Year',
+    nameAr: 'رأس السنة الهجرية',
+    description: 'The beginning of the Islamic calendar year',
+    descriptionAr: 'بداية السنة الهجرية',
+    isHoliday: true
+  };
+
+  it('should render event card in English', () => {
+    const { container } = render(
+      <CalendarEventCard
+        event={mockEvent}
+        language="en"
+      />
+    );
+
+    expect(container.textContent).toContain('Islamic New Year');
+    expect(container.textContent).toContain('The beginning of the Islamic calendar year');
+    expect(container.textContent).toContain('Islamic Holiday');
+  });
+
+  it('should render event card in Arabic', () => {
+    const { container } = render(
+      <CalendarEventCard
+        event={mockEvent}
+        language="ar"
+      />
+    );
+
+    expect(container.textContent).toContain('رأس السنة الهجرية');
+    expect(container.textContent).toContain('بداية السنة الهجرية');
+    expect(container.textContent).toContain('عطلة إسلامية');
+  });
+
+  it('should render observance card for non-holiday events', () => {
+    const observanceEvent = {
+      ...mockEvent,
+      isHoliday: false
+    };
+
+    const { container } = render(
+      <CalendarEventCard
+        event={observanceEvent}
+        language="en"
+      />
+    );
+
+    expect(container.textContent).toContain('Islamic Observance');
+  });
+
+  it('should handle event without description', () => {
+    const eventWithoutDescription = {
+      name: 'Test Event',
+      nameAr: 'حدث تجريبي',
+      isHoliday: false
+    };
+
+    const { container } = render(
+      <CalendarEventCard
+        event={eventWithoutDescription}
+        language="en"
+      />
+    );
+
+    expect(container.textContent).toContain('Test Event');
+    expect(container.textContent).not.toContain('description');
+  });
+});
