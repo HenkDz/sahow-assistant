@@ -1,5 +1,6 @@
 import React from 'react';
 import { Language } from '../types';
+import { useUserPreferencesStore } from '../stores/userPreferencesStore';
 
 interface LanguageSettingsProps {
   value: Language;
@@ -12,6 +13,8 @@ const LanguageSettings: React.FC<LanguageSettingsProps> = ({
   onChange, 
   lang 
 }) => {
+  const { setLanguage } = useUserPreferencesStore();
+
   const languageOptions = [
     { 
       value: 'en' as Language, 
@@ -29,16 +32,60 @@ const LanguageSettings: React.FC<LanguageSettingsProps> = ({
     }
   ];
 
-  const handleLanguageChange = (language: Language) => {
-    onChange(language);
+  const handleLanguageChange = async (language: Language) => {
+    try {
+      // Use the store method for instant language change
+      await setLanguage(language);
+      // Also call the onChange prop for compatibility
+      onChange(language);
+    } catch (error) {
+      console.error('Failed to change language:', error);
+    }
   };
 
   return (
     <div className="space-y-6">
+      {/* Visual Language Switcher */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {lang === 'ar' ? 'التبديل السريع للغة' : 'Quick Language Switch'}
+        </h3>
+        
+        <div className="relative flex items-center bg-gray-100 p-1 rounded-full shadow-inner" dir="ltr">
+          <div
+            className="absolute top-1 left-1 w-[90px] h-[calc(100%-8px)] bg-blue-600 rounded-full shadow transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(${value === 'ar' ? '90px' : '0px'})` }}
+          />
+          <button
+            onClick={() => handleLanguageChange('en')}
+            className={`w-[90px] px-2 py-1.5 text-sm font-semibold rounded-full transition-colors duration-300 focus:outline-none relative z-10 ${
+              value === 'en' ? 'text-white' : 'text-slate-600 hover:bg-slate-200/50'
+            }`}
+          >
+            English
+          </button>
+          <button
+            onClick={() => handleLanguageChange('ar')}
+            className={`w-[90px] px-2 py-1.5 text-sm font-semibold rounded-full transition-colors duration-300 focus:outline-none relative z-10 ${
+              value === 'ar' ? 'text-white' : 'text-slate-600 hover:bg-slate-200/50'
+            }`}
+          >
+            العربية
+          </button>
+        </div>
+        
+        <p className="text-sm text-gray-600 mt-3 text-center">
+          {lang === 'ar' 
+            ? 'سيتم تطبيق تغيير اللغة فوراً في جميع أنحاء التطبيق'
+            : 'Language changes will be applied instantly throughout the app'
+          }
+        </p>
+      </div>
+
       {/* Language Selection */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          {lang === 'ar' ? 'اختيار اللغة' : 'Language Selection'}
+          {lang === 'ar' ? 'اختيار اللغة التفصيلي' : 'Detailed Language Selection'}
         </h3>
         
         <div className="space-y-3">
@@ -196,28 +243,6 @@ const LanguageSettings: React.FC<LanguageSettingsProps> = ({
           </p>
         </div>
       </div>
-
-      {/* Restart Notice */}
-      {value !== lang && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
-          <div className="flex items-start space-x-3 rtl:space-x-reverse">
-            <div className="w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-white text-xs">⚠</span>
-            </div>
-            <div>
-              <h4 className="font-semibold text-orange-800 mb-1">
-                {lang === 'ar' ? 'إعادة تشغيل مطلوبة' : 'Restart Required'}
-              </h4>
-              <p className="text-sm text-orange-700">
-                {lang === 'ar' 
-                  ? 'لتطبيق تغيير اللغة بشكل كامل، يُرجى إعادة تشغيل التطبيق'
-                  : 'To fully apply the language change, please restart the app'
-                }
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -62,6 +62,7 @@ const i18nConfig = {
       tasbih: enTranslations.tasbih,
       calendar: enTranslations.calendar,
       mosques: enTranslations.mosques,
+      settings: enTranslations.settings,
       main_navigation: enTranslations.main_navigation
     },
     ar: {
@@ -73,6 +74,7 @@ const i18nConfig = {
       tasbih: arTranslations.tasbih,
       calendar: arTranslations.calendar,
       mosques: arTranslations.mosques,
+      settings: arTranslations.settings,
       main_navigation: arTranslations.main_navigation
     }
   },
