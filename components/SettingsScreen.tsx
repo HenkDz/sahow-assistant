@@ -71,10 +71,6 @@ type SettingsSection =
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   const { t, isRTL, currentLanguage } = useTranslation('settings');
   
-  // Temporary fallback for legacy components
-  const legacyT = new Proxy({} as Record<string, string>, {
-    get: () => ''
-  });
   const [preferences, setPreferences] = useState<ComprehensiveUserPreferences | null>(null);
   const [currentSection, setCurrentSection] = useState<SettingsSection>('main');
   const [loading, setLoading] = useState(true);
@@ -187,7 +183,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
         <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
         
         <div className="flex justify-center items-center h-64">
@@ -199,7 +195,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
 
   if (!preferences) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
         <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
         
         <div className="text-center py-8">
@@ -225,7 +221,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         title: t('calculation'),
         description: t('calculation_desc'),
         icon: CalculatorIcon,
-        badge: SettingsService.getCalculationMethodInfo(preferences.calculationMethod).name
+        badge: t(`calculation_methods.${SettingsService.getCalculationMethodKey(preferences.calculationMethod)}.name`)
       },
       {
         id: 'notifications' as SettingsSection,
@@ -253,21 +249,21 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         title: t('privacy'),
         description: t('privacy_desc'),
         icon: ShieldIcon,
-        badge: preferences.privacy.analyticsEnabled ? t('enabled') : t('disabled')
+        badge: preferences.privacy?.analyticsEnabled ? t('enabled') : t('disabled')
       },
       {
         id: 'refresh' as SettingsSection,
         title: t('refresh'),
         description: t('refresh_desc'),
         icon: RefreshIcon,
-        badge: t('title')
+        badge: t('enabled')
       },
       {
         id: 'accessibility' as SettingsSection,
         title: t('accessibility'),
         description: t('accessibility_desc'),
         icon: HeartIcon,
-        badge: Object.values(preferences.accessibility).some(Boolean) ? t('enabled') : t('disabled')
+        badge: preferences.accessibility && Object.values(preferences.accessibility).some(Boolean) ? t('enabled') : t('disabled')
       }
     ];
 
@@ -281,7 +277,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
               <button
                 key={item.id}
                 onClick={() => setCurrentSection(item.id)}
-                className="w-full bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow text-left"
+                className={`w-full bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow ${isRTL ? 'text-right' : 'text-left'}`}
                 dir={isRTL ? 'rtl' : 'ltr'}
               >
                 <div className="flex items-center justify-between">
@@ -290,8 +286,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
                       <Icon className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                      <p className="text-sm text-gray-500">{item.description}</p>
+                      <h3 className={`font-semibold text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{item.title}</h3>
+                      <p className={`text-sm text-gray-500 ${isRTL ? 'text-right' : 'text-left'}`}>{item.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -333,7 +329,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         </div>
 
         {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className={`mt-4 bg-red-50 border border-red-200 rounded-xl p-4 ${isRTL ? 'text-right' : 'text-left'}`}>
             <p className="text-red-600 text-sm">{error}</p>
           </div>
         )}
@@ -342,70 +338,98 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   };
 
   const renderSection = () => {
-    switch (currentSection) {
-      case 'calculation':
-        return (
-          <div className="px-4 py-6">
-            <MadhabSelector
-              value={preferences.madhab}
-              calculationMethod={preferences.calculationMethod}
-              onChange={(madhab) => updateTopLevel('madhab', madhab)}
-              onCalculationMethodChange={(calculationMethod) => updateTopLevel('calculationMethod', calculationMethod)}
-              lang={currentLanguage}
-              t={legacyT}
-            />
-            <CalculationMethodSelector
-              value={preferences.calculationMethod}
-              onChange={(calculationMethod) => updateTopLevel('calculationMethod', calculationMethod)}
-              lang={currentLanguage}
-              t={legacyT}
-            />
-          </div>
-        );
+    const sectionContent = (() => {
+      switch (currentSection) {
+        case 'calculation':
+          return (
+            <div className="px-4 py-6">
+              <MadhabSelector
+                value={preferences.madhab}
+                calculationMethod={preferences.calculationMethod}
+                onChange={(madhab) => updateTopLevel('madhab', madhab)}
+                onCalculationMethodChange={(calculationMethod) => updateTopLevel('calculationMethod', calculationMethod)}
+                lang={currentLanguage}
+              />
+              <CalculationMethodSelector
+                value={preferences.calculationMethod}
+                onChange={(calculationMethod) => updateTopLevel('calculationMethod', calculationMethod)}
+                lang={currentLanguage}
+              />
+            </div>
+          );
 
-      case 'notifications':
-        return (
-          <div className="px-4 py-6">
-            <NotificationSettings
-              value={preferences.notifications}
-              onChange={(notifications) => updateSection('notifications', notifications)}
-              lang={currentLanguage}
-            />
-          </div>
-        );
+        case 'notifications':
+          return (
+            <div className="px-4 py-6">
+              <NotificationSettings
+                value={preferences.notifications}
+                onChange={(notifications) => updateSection('notifications', notifications)}
+                lang={currentLanguage}
+              />
+            </div>
+          );
 
-      case 'display':
-        return (
-          <div className="px-4 py-6">
-            <DisplaySettings
-              value={preferences.display}
-              onChange={(display) => updateSection('display', display)}
-              lang={currentLanguage}
-            />
-          </div>
-        );
+        case 'display':
+          return (
+            <div className="px-4 py-6">
+              <DisplaySettings
+                value={preferences.display}
+                onChange={(display) => updateSection('display', display)}
+                lang={currentLanguage}
+              />
+            </div>
+          );
 
-      case 'language':
-        return (
-          <div className="px-4 py-6">
-            <LanguageSettings
-              value={preferences.language}
-              onChange={(language) => updateSection('language', language)}
-              lang={currentLanguage}
-            />
-          </div>
-        );
+        case 'language':
+          return (
+            <div className="px-4 py-6">
+              <LanguageSettings
+                value={preferences.language}
+                onChange={(language) => updateSection('language', language)}
+                lang={currentLanguage}
+              />
+            </div>
+          );
 
-      case 'refresh':
-        return (
-          <div className="px-4 py-6">
-            <RefreshSettings />
-          </div>
-        );
+        case 'refresh':
+          return (
+            <div className="px-4 py-6">
+              <RefreshSettings />
+            </div>
+          );
 
-      default:
-        return renderMainMenu();
-    }
+        case 'privacy':
+          return (
+            <div className="px-4 py-6">
+              <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${isRTL ? 'text-right' : 'text-left'}`}>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('privacy')}</h3>
+                <p className="text-gray-600">{t('privacy_desc')}</p>
+                <p className="text-sm text-gray-500 mt-4">Coming soon...</p>
+              </div>
+            </div>
+          );
+
+        case 'accessibility':
+          return (
+            <div className="px-4 py-6">
+              <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${isRTL ? 'text-right' : 'text-left'}`}>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('accessibility')}</h3>
+                <p className="text-gray-600">{t('accessibility_desc')}</p>
+                <p className="text-sm text-gray-500 mt-4">Coming soon...</p>
+              </div>
+            </div>
+          );
+
+        default:
+          return renderMainMenu();
+      }
+    })();
+
+    return (
+      <div className={isRTL ? 'text-right' : 'text-left'} dir={isRTL ? 'rtl' : 'ltr'}>
+        {sectionContent}
+      </div>
+    );
   };
 
   const getSectionTitle = () => {
@@ -433,7 +457,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
 
   return (
     <OfflineErrorBoundary feature="settings">
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
         <Header 
           title={getSectionTitle()} 
           onBack={handleBack} 
@@ -446,7 +470,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
 
         {saving && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white rounded-xl p-6 mx-4">
+            <div className={`bg-white rounded-xl p-6 mx-4 ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
               <div className="flex items-center space-x-3 rtl:space-x-reverse">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                 <p className="text-gray-700">{t('saving')}</p>

@@ -230,7 +230,66 @@
     "refresh": "Data Refresh",
     "refresh_desc": "Control when to refresh data",
     "accessibility": "Accessibility",
-    "accessibility_desc": "Accessibility options"
+    "accessibility_desc": "Accessibility options",
+    "calculation_methods": {
+      "ISNA": {
+        "name": "Islamic Society of North America",
+        "description": "Used in North America",
+        "region": "North America"
+      },
+      "MWL": {
+        "name": "Muslim World League",
+        "description": "Used in Europe, Far East, parts of US",
+        "region": "Europe & Far East"
+      },
+      "EGYPT": {
+        "name": "Egyptian General Authority of Survey",
+        "description": "Used in Africa, Syria, Lebanon, Malaysia",
+        "region": "Africa & Middle East"
+      },
+      "MAKKAH": {
+        "name": "Umm al-Qura University",
+        "description": "Used in Saudi Arabia",
+        "region": "Saudi Arabia"
+      },
+      "KARACHI": {
+        "name": "University of Islamic Sciences, Karachi",
+        "description": "Used in Pakistan, Bangladesh, India",
+        "region": "South Asia"
+      },
+      "TEHRAN": {
+        "name": "Institute of Geophysics, University of Tehran",
+        "description": "Used in Iran, some Shia communities",
+        "region": "Iran"
+      },
+      "JAFARI": {
+        "name": "Shia Ithna Ashari (Jafari)",
+        "description": "Used by Shia Muslims",
+        "region": "Shia Communities"
+      }
+    },
+    "madhabs": {
+      "HANAFI": {
+        "name": "Hanafi",
+        "description": "Asr prayer when shadow equals object height plus original shadow",
+        "asr_calculation": "Shadow = Object + Original Shadow"
+      },
+      "SHAFI": {
+        "name": "Shafi'i",
+        "description": "Asr prayer when shadow equals object height",
+        "asr_calculation": "Shadow = Object Height"
+      },
+      "MALIKI": {
+        "name": "Maliki",
+        "description": "Asr prayer when shadow equals object height",
+        "asr_calculation": "Shadow = Object Height"
+      },
+      "HANBALI": {
+        "name": "Hanbali",
+        "description": "Asr prayer when shadow equals object height",
+        "asr_calculation": "Shadow = Object Height"
+      }
+    }
   },
   "main_navigation": {
     "title": "Comprehensive Islamic App",
