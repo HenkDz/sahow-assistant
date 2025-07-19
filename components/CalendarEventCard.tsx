@@ -1,5 +1,5 @@
 import React from 'react';
-import { Language } from '../types';
+import { useTranslation } from '../i18n/I18nProvider';
 
 interface IslamicEvent {
   name: string;
@@ -11,29 +11,15 @@ interface IslamicEvent {
 
 interface CalendarEventCardProps {
   event: IslamicEvent;
-  language: Language;
 }
 
 export const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
-  event,
-  language
+  event
 }) => {
-  const isRTL = language === 'ar';
+  const { t, isRTL, currentLanguage } = useTranslation('calendar');
   
-  const translations = {
-    ar: {
-      holiday: 'عطلة إسلامية',
-      observance: 'مناسبة إسلامية'
-    },
-    en: {
-      holiday: 'Islamic Holiday',
-      observance: 'Islamic Observance'
-    }
-  };
-
-  const t = translations[language];
-  const eventName = language === 'ar' ? event.nameAr : event.name;
-  const eventDescription = language === 'ar' ? event.descriptionAr : event.description;
+  const eventName = currentLanguage === 'ar' ? event.nameAr : event.name;
+  const eventDescription = currentLanguage === 'ar' ? event.descriptionAr : event.description;
 
   return (
     <div className={`
@@ -63,7 +49,7 @@ export const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
                 : 'bg-emerald-100 text-emerald-800'
               }
             `}>
-              {event.isHoliday ? t.holiday : t.observance}
+              {event.isHoliday ? t('event_types.holiday') : t('event_types.observance')}
             </span>
           </div>
           

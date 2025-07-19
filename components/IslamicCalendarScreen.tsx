@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { IslamicCalendarService } from '../services/IslamicCalendarService';
-import { IslamicDate, Language } from '../types';
+import { IslamicDate } from '../types';
 import { CalendarEventCard } from './CalendarEventCard';
 import { RamadanTimesCard } from './RamadanTimesCard';
 import { Header } from './Header';
+import { useTranslation } from '../i18n/I18nProvider';
 
 interface IslamicCalendarScreenProps {
-  language: Language;
   onBack: () => void;
 }
 
 export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
-  language,
   onBack
 }) => {
+  const { t, isRTL, currentLanguage } = useTranslation('calendar');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [islamicDate, setIslamicDate] = useState<IslamicDate | null>(null);
   const [monthDates, setMonthDates] = useState<IslamicDate[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const isRTL = language === 'ar';
 
   useEffect(() => {
     loadCalendarData();
@@ -55,7 +53,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
   };
 
   const formatGregorianDate = (date: Date) => {
-    return date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+    return date.toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : 'en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -63,41 +61,12 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
     });
   };
 
-  const translations = {
-    ar: {
-      title: 'التقويم الإسلامي',
-      today: 'اليوم',
-      gregorian: 'ميلادي',
-      hijri: 'هجري',
-      events: 'الأحداث',
-      noEvents: 'لا توجد أحداث',
-      back: 'رجوع',
-      previousMonth: 'الشهر السابق',
-      nextMonth: 'الشهر التالي',
-      loading: 'جاري التحميل...'
-    },
-    en: {
-      title: 'Islamic Calendar',
-      today: 'Today',
-      gregorian: 'Gregorian',
-      hijri: 'Hijri',
-      events: 'Events',
-      noEvents: 'No events',
-      back: 'Back',
-      previousMonth: 'Previous Month',
-      nextMonth: 'Next Month',
-      loading: 'Loading...'
-    }
-  };
-
-  const t = translations[language];
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-blue-700 font-medium">{t.loading}</p>
+          <p className="text-blue-700 font-medium">{t('loading')}</p>
         </div>
       </div>
     );
@@ -105,7 +74,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 ${isRTL ? 'rtl' : 'ltr'}`}>
-      <Header title={t.title} onBack={onBack} isRTL={isRTL} />
+      <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
       
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Today Button */}
@@ -114,7 +83,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
             onClick={navigateToToday}
             className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
           >
-            {t.today}
+            {t('today')}
           </button>
         </div>
         {/* Current Date Display */}
@@ -122,13 +91,13 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
           <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-6">
             <div className="text-center space-y-3">
               <div>
-                <p className="text-sm text-blue-600 font-medium mb-1">{t.hijri}</p>
+                <p className="text-sm text-blue-600 font-medium mb-1">{t('hijri')}</p>
                 <p className="text-2xl font-bold text-blue-800">
-                  {IslamicCalendarService.formatIslamicDate(islamicDate, language)}
+                  {IslamicCalendarService.formatIslamicDate(islamicDate, currentLanguage)}
                 </p>
               </div>
               <div className="border-t border-blue-100 pt-3">
-                <p className="text-sm text-blue-600 font-medium mb-1">{t.gregorian}</p>
+                <p className="text-sm text-blue-600 font-medium mb-1">{t('gregorian')}</p>
                 <p className="text-lg text-blue-700">
                   {formatGregorianDate(islamicDate.gregorianDate)}
                 </p>
@@ -142,7 +111,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
           <button
             onClick={() => navigateMonth('prev')}
             className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
-            aria-label={t.previousMonth}
+            aria-label={t('previousMonth')}
           >
             <svg 
               className={`w-5 h-5 text-blue-600 ${isRTL ? 'rotate-180' : ''}`} 
@@ -158,7 +127,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
             <p className="text-lg font-semibold text-blue-800">
               {islamicDate && IslamicCalendarService.getHijriMonthName(
                 IslamicCalendarService.hijriMonthNames.indexOf(islamicDate.hijriMonth) + 1,
-                language
+                currentLanguage
               )} {islamicDate?.hijriYear}
             </p>
           </div>
@@ -166,7 +135,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
           <button
             onClick={() => navigateMonth('next')}
             className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
-            aria-label={t.nextMonth}
+            aria-label={t('nextMonth')}
           >
             <svg 
               className={`w-5 h-5 text-blue-600 ${isRTL ? '' : 'rotate-180'}`} 
@@ -214,7 +183,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
         {/* Events for Current Date */}
         {islamicDate && islamicDate.events && islamicDate.events.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-blue-800">{t.events}</h2>
+            <h2 className="text-lg font-semibold text-blue-800">{t('events')}</h2>
             {islamicDate.events.map((eventName, index) => {
               const eventDetails = IslamicCalendarService.getDetailedIslamicEventsForDate(
                 IslamicCalendarService.hijriMonthNames.indexOf(islamicDate.hijriMonth) + 1,
@@ -225,7 +194,6 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
                 <CalendarEventCard
                   key={index}
                   event={eventDetails || { name: eventName, nameAr: eventName, isHoliday: false }}
-                  language={language}
                 />
               );
             })}
@@ -238,7 +206,6 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
         ) && (
           <RamadanTimesCard
             date={islamicDate.gregorianDate}
-            language={language}
           />
         )}
 
@@ -250,7 +217,7 @@ export const IslamicCalendarScreen: React.FC<IslamicCalendarScreenProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <p className="text-blue-600">{t.noEvents}</p>
+            <p className="text-blue-600">{t('noEvents')}</p>
           </div>
         )}
       </div>

@@ -1,0 +1,245 @@
+{
+  "common": {
+    "buttons": {
+      "back": "Back",
+      "cancel": "Cancel",
+      "retry": "Retry",
+      "reset": "Reset",
+      "settings": "Settings",
+      "history": "History"
+    },
+    "status": {
+      "loading": "Loading...",
+      "error_title": "Error",
+      "gps": "GPS",
+      "manual": "Manual"
+    },
+    "navigation": {
+      "start_over": "Start Over"
+    }
+  },
+  "sahw_assistant": {
+    "main": {
+      "title": "Sahw Assistant",
+      "subtitle": "Your guide to the rulings of Sujood As-Sahw in prayer."
+    },
+    "questions": {
+      "type": "What type of mistake occurred?",
+      "decrease_type": "What was omitted?",
+      "decrease_desc": "A Rukn (pillar) is an essential part of the prayer, invalid without it (e.g., bowing, prostrating). A Wajib (obligation) is something that invalidates the prayer if left intentionally, but not if forgotten (e.g., the first Tashahhud).",
+      "doubt_type": "Are you more certain about one choice?",
+      "doubt_desc": "Do you have a strong feeling about the number of rak'ahs (e.g., you strongly feel you prayed three, not four)?"
+    },
+    "buttons": {
+      "increase": "Addition",
+      "decrease": "Omission",
+      "doubt": "Doubt",
+      "decrease_wajib": "Omitted an Obligation (Wajib)",
+      "decrease_rukn": "Omitted a Pillar (Rukn)",
+      "doubt_yes": "Yes, I have a strong feeling",
+      "doubt_no": "No, I am completely unsure"
+    },
+    "results": {
+      "title": "The Ruling",
+      "daleel_title": "Evidence from the Sunnah",
+      "increase": {
+        "title": "Ruling in Case of Addition",
+        "details": "<p class=\"mb-2\">If you mistakenly add a bow, prostration, or a full rak'ah to your prayer, your prayer is still valid.</p><ul class=\"list-disc list-inside space-y-2\"><li>Complete your prayer until the Tasleem.</li><li>After the Tasleem, perform two prostrations for forgetfulness.</li><li>Then, make the Tasleem again.</li></ul>",
+        "daleel": "The hadith of Abdullah ibn Mas'ud (may Allah be pleased with him) that the Prophet (ﷺ) prayed Dhuhr with five rak'ahs. When asked, \"Has the prayer been increased?\" He said, \"What is that?\" They said, \"You prayed five.\" So he performed two prostrations after he had made the Tasleem. (Agreed upon)."
+      },
+      "decrease_wajib": {
+        "title": "Ruling in Case of Omitting an Obligation (Wajib)",
+        "details": "<p class=\"mb-2\">If you forget an obligation (like the first Tashahhud) and remember it after moving to the next pillar, do not go back.</p><ul class=\"list-disc list-inside space-y-2\"><li>Continue your prayer as normal.</li><li>Before making the final Tasleem, perform two prostrations for forgetfulness.</li><li>Then, make the Tasleem.</li></ul>",
+        "daleel": "The hadith of Abdullah ibn Buhaynah (may Allah be pleased with him) that the Prophet (ﷺ) stood up after two rak'ahs in Dhuhr without sitting. When he finished his prayer... he performed two prostrations before the Tasleem, then made the Tasleem. (Agreed upon)."
+      },
+      "decrease_rukn": {
+        "title": "Ruling in Case of Omitting a Pillar (Rukn)",
+        "details": "<p class=\"mb-2 text-red-600 font-semibold\">Omitting a pillar is a serious mistake and is not fixed by the two prostrations alone.</p><p class=\"mb-2\">You must perform the pillar you missed and what comes after it. If you don't, your prayer is invalid.</p><ul class=\"list-disc list-inside space-y-2\"><li>If you remember before reaching its place in the next rak'ah, you must immediately return to perform it and what follows.</li><li>If you remember after reaching its place in the next rak'ah, the rak'ah in which you missed the pillar is nullified, and the current rak'ah takes its place.</li><li>In both cases, you complete your prayer and then perform two prostrations for forgetfulness before the Tasleem.</li></ul>",
+        "daleel": "A general principle in Fiqh: \"A pillar is not waived due to forgetfulness, nor is it compensated for by Sujood As-Sahw.\" This is supported by the hadith of the \"man who prayed badly,\" whom the Prophet (ﷺ) commanded to repeat the prayer for omitting a pillar (tranquility), and did not just tell him to perform Sujood As-Sahw."
+      },
+      "doubt_prevail": {
+        "title": "Ruling in Case of Doubt with Stronger Inclination",
+        "details": "<p class=\"mb-2\">If you are in doubt about the number of rak'ahs but have a stronger feeling towards one number.</p><ul class=\"list-disc list-inside space-y-2\"><li>Act upon what you are more certain of and complete your prayer.</li><li>After making the final Tasleem, perform two prostrations for forgetfulness.</li><li>Then, make the Tasleem again.</li></ul>",
+        "daleel": "The hadith of Ibn Mas'ud (may Allah be pleased with him) that the Prophet (ﷺ) said: \"If any of you is in doubt during his prayer, he should aim for what is correct, complete his prayer upon it, then make the Tasleem, and then perform two prostrations.\" (Agreed upon)."
+      },
+      "doubt_no_prevail": {
+        "title": "Ruling in Case of Doubt without Stronger Inclination",
+        "details": "<p class=\"mb-2\">If you are in doubt about the number of rak'ahs and are not more certain of either choice.</p><ul class=\"list-disc list-inside space-y-2\"><li>Act upon certainty, which is the lesser number (e.g., if in doubt between three and four, assume it is three).</li><li>Complete your prayer based on that.</li><li>Before making the final Tasleem, perform two prostrations for forgetfulness.</li><li>Then, make the Tasleem.</li></ul>",
+        "daleel": "The hadith of Abu Sa'id al-Khudri (may Allah be pleased with him) who said: The Messenger of Allah (ﷺ) said: \"If any of you is in doubt in his prayer and does not know how many he has prayed, three or four, he should cast aside the doubt and build on what is certain, then perform two prostrations before the Tasleem...\". (Narrated by Muslim)."
+      }
+    }
+  },
+  "location": {
+    "errors": {
+      "generic": "An error occurred while getting your location.",
+      "permission_denied": "Location Permission Denied",
+      "unavailable": "Location Unavailable",
+      "timeout": "Location Request Timeout",
+      "permission_help": "To enable location services, go to your device settings and allow location access for this app."
+    },
+    "buttons": {
+      "manual_location": "Enter Location Manually",
+      "set_location": "Set Location"
+    },
+    "manual": {
+      "title": "Set Your Location",
+      "description": "Enter your city and country to get accurate prayer times.",
+      "quick_select": "Quick Select",
+      "use_coordinates": "I know the exact coordinates"
+    },
+    "labels": {
+      "city": "City",
+      "country": "Country",
+      "latitude": "Latitude",
+      "longitude": "Longitude"
+    },
+    "placeholders": {
+      "city": "Enter your city",
+      "country": "Enter your country"
+    },
+    "validation": {
+      "city_required": "City is required",
+      "country_required": "Country is required",
+      "invalid_latitude": "Latitude must be between -90 and 90",
+      "invalid_longitude": "Longitude must be between -180 and 180"
+    },
+    "status": {
+      "loading": "Getting location...",
+      "not_set": "Location not set",
+      "gps": "GPS Location",
+      "manual": "Manual Location",
+      "unknown": "Unknown location",
+      "tap_to_set": "Tap to set your location"
+    }
+  },
+  "prayers": {
+    "title": "Prayer Times",
+    "todays_prayers": "Today's Prayers",
+    "weekly_prayers": "Weekly Prayer Times",
+    "loading": "Loading prayer times...",
+    "next_prayer": "Next Prayer",
+    "time_remaining": "Time Remaining",
+    "names": {
+      "fajr": "Fajr",
+      "sunrise": "Sunrise",
+      "dhuhr": "Dhuhr",
+      "asr": "Asr",
+      "maghrib": "Maghrib",
+      "isha": "Isha"
+    }
+  },
+  "qibla": {
+    "title": "Qibla Direction",
+    "loading": "Loading qibla direction...",
+    "direction": "Qibla Direction",
+    "distance_to_kaaba": "Distance to Kaaba",
+    "compass": {
+      "calibration": "Compass Calibration",
+      "instructions": "Move your device in a figure-8 pattern to calibrate the compass",
+      "not_supported": "Compass not supported on this device"
+    },
+    "location_required": "Location required for qibla direction"
+  },
+  "tasbih": {
+    "title": "Digital Tasbih",
+    "select_dhikr": "Select Dhikr",
+    "goal": "Goal",
+    "of": "of",
+    "remaining": "remaining",
+    "goal_completed": "Goal Completed!",
+    "tap": "TAP",
+    "confirm_reset": "Confirm Reset",
+    "reset_warning": "Are you sure you want to reset the counter? Your current progress will be saved to history.",
+    "no_history": "No history yet"
+  },
+  "calendar": {
+    "title": "Islamic Calendar",
+    "today": "Today",
+    "gregorian": "Gregorian",
+    "hijri": "Hijri",
+    "events": "Events",
+    "noEvents": "No events",
+    "previousMonth": "Previous Month",
+    "nextMonth": "Next Month",
+    "loading": "Loading...",
+    "event_types": {
+      "holiday": "Islamic Holiday",
+      "observance": "Islamic Observance"
+    },
+    "ramadan": {
+      "title": "Ramadan Times",
+      "suhoor": "Suhoor",
+      "iftar": "Iftar",
+      "endsAt": "Ends at",
+      "startsAt": "Starts at",
+      "timeRemaining": "Time remaining",
+      "hours": "hours",
+      "minutes": "minutes",
+      "and": "and",
+      "loading": "Loading...",
+      "locationRequired": "Location required for Ramadan times",
+      "error": "Error loading Ramadan times"
+    }
+  },
+  "mosques": {
+    "title": "Nearby Mosques",
+    "search": "Search",
+    "searchMosques": "Search mosques...",
+    "searchFilters": "Search Filters",
+    "searchRadius": "Search Radius",
+    "applyFilters": "Apply Filters",
+    "adjustSearch": "Adjust Search",
+    "noMosquesFound": "No mosques found in your area",
+    "locationError": "Failed to get location",
+    "mosqueSearchError": "Failed to search mosques",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "change": "Change",
+    "getDirections": "Get Directions",
+    "callMosque": "Call Mosque",
+    "mosqueDetails": "Mosque Details",
+    "address": "Address",
+    "phone": "Phone",
+    "website": "Website",
+    "openingHours": "Opening Hours",
+    "facilities": "Facilities",
+    "distance": "Distance",
+    "reviews": "Reviews"
+  },
+  "main_navigation": {
+    "title": "Comprehensive Islamic App",
+    "subtitle": "A collection of useful Islamic tools",
+    "features": {
+      "sahw_assistant": {
+        "title": "Sahw Assistant",
+        "description": "Guide to prayer correction rulings"
+      },
+      "prayer_times": {
+        "title": "Prayer Times",
+        "description": "Accurate prayer times for your location"
+      },
+      "qibla": {
+        "title": "Qibla Direction",
+        "description": "Find the precise direction to Mecca"
+      },
+      "calendar": {
+        "title": "Islamic Calendar",
+        "description": "Hijri calendar and Islamic events"
+      },
+      "tasbih": {
+        "title": "Digital Tasbih",
+        "description": "Digital prayer bead counter"
+      },
+      "mosques": {
+        "title": "Nearby Mosques",
+        "description": "Find mosques in your area"
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "App settings and preferences"
+      }
+    },
+    "coming_soon": "Coming Soon",
+    "footer_blessing": "May Allah bless you"
+  }
+}

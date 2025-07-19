@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Language, PrayerTimes } from '../types';
+import { PrayerTimes } from '../types';
 import { PrayerTimesService } from '../services/PrayerTimesService';
+import { useTranslation } from '../i18n/I18nProvider';
 import { ClockIcon, SunIcon, MoonIcon } from './icons/HeroIcons';
 
 interface PrayerTimeCardProps {
   prayerTimes: PrayerTimes;
-  t: Record<string, string>;
-  lang: Language;
   showCountdown?: boolean;
   compact?: boolean;
 }
@@ -22,11 +21,10 @@ interface PrayerInfo {
 
 const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({ 
   prayerTimes, 
-  t, 
-  lang, 
   showCountdown = false,
   compact = false 
 }) => {
+  const { t, isRTL } = useTranslation('prayers');
   const [timeUntilNext, setTimeUntilNext] = useState<number>(0);
   const [nextPrayer, setNextPrayer] = useState<{ name: string; time: Date } | null>(null);
   const [currentPrayer, setCurrentPrayer] = useState<{ name: string; time: Date } | null>(null);
@@ -85,7 +83,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
 
   const prayers: PrayerInfo[] = [
     {
-      name: t.fajr || 'Fajr',
+      name: t('names.fajr'),
       arabicName: 'الفجر',
       time: prayerTimes.fajr,
       icon: getPrayerIcon('fajr'),
@@ -93,7 +91,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
       isCurrent: currentPrayer?.name === 'Fajr'
     },
     {
-      name: t.sunrise || 'Sunrise',
+      name: t('names.sunrise'),
       arabicName: 'الشروق',
       time: prayerTimes.sunrise,
       icon: getPrayerIcon('sunrise'),
@@ -101,7 +99,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
       isCurrent: currentPrayer?.name === 'Sunrise'
     },
     {
-      name: t.dhuhr || 'Dhuhr',
+      name: t('names.dhuhr'),
       arabicName: 'الظهر',
       time: prayerTimes.dhuhr,
       icon: getPrayerIcon('dhuhr'),
@@ -109,7 +107,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
       isCurrent: currentPrayer?.name === 'Dhuhr'
     },
     {
-      name: t.asr || 'Asr',
+      name: t('names.asr'),
       arabicName: 'العصر',
       time: prayerTimes.asr,
       icon: getPrayerIcon('asr'),
@@ -117,7 +115,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
       isCurrent: currentPrayer?.name === 'Asr'
     },
     {
-      name: t.maghrib || 'Maghrib',
+      name: t('names.maghrib'),
       arabicName: 'المغرب',
       time: prayerTimes.maghrib,
       icon: getPrayerIcon('maghrib'),
@@ -125,7 +123,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
       isCurrent: currentPrayer?.name === 'Maghrib'
     },
     {
-      name: t.isha || 'Isha',
+      name: t('names.isha'),
       arabicName: 'العشاء',
       time: prayerTimes.isha,
       icon: getPrayerIcon('isha'),
@@ -150,12 +148,12 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
           >
             <div className="flex items-center gap-1 mb-1">
               <span className={prayer.isNext ? 'text-blue-600' : prayer.isCurrent ? 'text-green-600' : 'text-slate-600'}>
-                {prayer.icon}
+              {prayer.icon}
               </span>
               <span className={`font-semibold text-xs ${
-                prayer.isNext ? 'text-blue-800' : prayer.isCurrent ? 'text-green-800' : 'text-slate-700'
+              prayer.isNext ? 'text-blue-800' : prayer.isCurrent ? 'text-green-800' : 'text-slate-700'
               }`}>
-                {lang === 'ar' ? prayer.arabicName : prayer.name}
+              {isRTL ? prayer.arabicName : prayer.name}
               </span>
             </div>
             <span className={`text-xs ${
@@ -176,14 +174,14 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
           <div className="text-center">
             <p className="text-sm text-blue-600 font-semibold mb-1">
-              {t.next_prayer || 'Next Prayer'}
+              {t('next_prayer', 'Next Prayer')}
             </p>
             <div className="flex items-center justify-center gap-2 mb-2">
               <span className="text-blue-600">{getPrayerIcon(nextPrayer.name)}</span>
               <h3 className="text-xl font-bold text-blue-800">
-                {lang === 'ar' 
-                  ? prayers.find(p => p.name === nextPrayer.name)?.arabicName 
-                  : nextPrayer.name
+                {isRTL
+                  ? prayers.find(p => p.name === t(`names.${nextPrayer.name.toLowerCase()}` as any))?.arabicName
+                  : t(`names.${nextPrayer.name.toLowerCase()}` as any, nextPrayer.name)
                 }
               </h3>
             </div>
@@ -192,7 +190,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
             </p>
             {timeUntilNext > 0 && (
               <p className="text-sm text-blue-600 mt-1">
-                {t.in || 'in'} {formatCountdown(timeUntilNext)}
+                {t('in', 'in')} {formatCountdown(timeUntilNext)}
               </p>
             )}
           </div>
@@ -230,9 +228,9 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
                     ? 'text-green-800' 
                     : 'text-slate-800'
                 }`}>
-                  {lang === 'ar' ? prayer.arabicName : prayer.name}
+                  {isRTL ? prayer.arabicName : prayer.name}
                 </h4>
-                {lang === 'en' && (
+                {!isRTL && (
                   <p className="text-xs text-slate-500">{prayer.arabicName}</p>
                 )}
               </div>
@@ -250,7 +248,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
               <div className="mt-2 flex items-center gap-1">
                 <ClockIcon className="w-3 h-3 text-blue-500" />
                 <span className="text-xs text-blue-600 font-semibold">
-                  {t.next || 'Next'}
+                  {t('next', 'Next')}
                 </span>
               </div>
             )}
@@ -258,7 +256,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
               <div className="mt-2 flex items-center gap-1">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-xs text-green-600 font-semibold">
-                  {t.current || 'Current'}
+                  {t('current', 'Current')}
                 </span>
               </div>
             )}
@@ -269,7 +267,7 @@ const PrayerTimeCard: React.FC<PrayerTimeCardProps> = ({
       {/* Additional Info */}
       <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-200">
         <p>
-          {t.calculation_method || 'Calculation Method'}: {prayerTimes.location}
+          {t('calculation_method', 'Calculation Method')}: {prayerTimes.location}
         </p>
       </div>
     </div>

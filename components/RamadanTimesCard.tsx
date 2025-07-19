@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Language, Location, PrayerTimes } from '../types';
+import { Location } from '../types';
 import { IslamicCalendarService } from '../services/IslamicCalendarService';
 import { PrayerTimesService } from '../services/PrayerTimesService';
+import { useTranslation } from '../i18n/I18nProvider';
 
 interface RamadanTimesCardProps {
   date: Date;
-  language: Language;
   location?: Location;
 }
 
@@ -17,14 +17,12 @@ interface RamadanTimes {
 
 export const RamadanTimesCard: React.FC<RamadanTimesCardProps> = ({
   date,
-  language,
   location
 }) => {
+  const { t, isRTL, currentLanguage } = useTranslation();
   const [ramadanTimes, setRamadanTimes] = useState<RamadanTimes | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const isRTL = language === 'ar';
 
   useEffect(() => {
     loadRamadanTimes();
@@ -56,7 +54,7 @@ export const RamadanTimesCard: React.FC<RamadanTimesCardProps> = ({
   };
 
   const formatTime = (time: Date) => {
-    return time.toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
+    return time.toLocaleTimeString(currentLanguage === 'ar' ? 'ar-SA' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
@@ -75,45 +73,12 @@ export const RamadanTimesCard: React.FC<RamadanTimesCardProps> = ({
     return { hours, minutes };
   };
 
-  const translations = {
-    ar: {
-      ramadanTimes: 'أوقات رمضان',
-      suhoor: 'السحور',
-      iftar: 'الإفطار',
-      endsAt: 'ينتهي في',
-      startsAt: 'يبدأ في',
-      timeRemaining: 'الوقت المتبقي',
-      hours: 'ساعة',
-      minutes: 'دقيقة',
-      and: 'و',
-      loading: 'جاري التحميل...',
-      locationRequired: 'الموقع مطلوب لحساب أوقات رمضان',
-      error: 'خطأ في تحميل أوقات رمضان'
-    },
-    en: {
-      ramadanTimes: 'Ramadan Times',
-      suhoor: 'Suhoor',
-      iftar: 'Iftar',
-      endsAt: 'Ends at',
-      startsAt: 'Starts at',
-      timeRemaining: 'Time remaining',
-      hours: 'hours',
-      minutes: 'minutes',
-      and: 'and',
-      loading: 'Loading...',
-      locationRequired: 'Location required for Ramadan times',
-      error: 'Error loading Ramadan times'
-    }
-  };
-
-  const t = translations[language];
-
   if (loading) {
     return (
       <div className={`bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl shadow-sm border border-purple-100 p-6 ${isRTL ? 'rtl' : ''}`}>
         <div className="flex items-center justify-center">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mr-3"></div>
-          <p className="text-purple-700">{t.loading}</p>
+          <p className="text-purple-700">{t('calendar.ramadan.loading')}</p>
         </div>
       </div>
     );
@@ -127,7 +92,7 @@ export const RamadanTimesCard: React.FC<RamadanTimesCardProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <p className="text-purple-600">{error || t.locationRequired}</p>
+          <p className="text-purple-600">{error || t('calendar.ramadan.locationRequired')}</p>
         </div>
       </div>
     );
@@ -137,7 +102,6 @@ export const RamadanTimesCard: React.FC<RamadanTimesCardProps> = ({
     return null;
   }
 
-  const now = new Date();
   const suhoorTimeRemaining = getTimeUntil(ramadanTimes.suhoorTime);
   const iftarTimeRemaining = getTimeUntil(ramadanTimes.iftarTime);
 
@@ -151,9 +115,9 @@ export const RamadanTimesCard: React.FC<RamadanTimesCardProps> = ({
           </svg>
         </div>
         <div>
-          <h3 className="text-lg font-bold text-purple-900">{t.ramadanTimes}</h3>
+          <h3 className="text-lg font-bold text-purple-900">{t('calendar.ramadan.title')}</h3>
           <p className="text-sm text-purple-600">
-            {date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+            {date.toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : 'en-US', {
               weekday: 'long',
               month: 'long',
               day: 'numeric'
@@ -172,14 +136,14 @@ export const RamadanTimesCard: React.FC<RamadanTimesCardProps> = ({
                 <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/>
               </svg>
             </div>
-            <h4 className="font-semibold text-blue-900 mb-1">{t.suhoor}</h4>
-            <p className="text-sm text-blue-600 mb-2">{t.endsAt}</p>
+            <h4 className="font-semibold text-blue-900 mb-1">{t('calendar.ramadan.suhoor')}</h4>
+            <p className="text-sm text-blue-600 mb-2">{t('calendar.ramadan.endsAt')}</p>
             <p className="text-xl font-bold text-blue-800">{formatTime(ramadanTimes.suhoorTime)}</p>
             {suhoorTimeRemaining && (
               <div className="mt-2 text-xs text-blue-600">
-                <p>{t.timeRemaining}</p>
+                <p>{t('calendar.ramadan.timeRemaining')}</p>
                 <p className="font-medium">
-                  {suhoorTimeRemaining.hours} {t.hours} {t.and} {suhoorTimeRemaining.minutes} {t.minutes}
+                  {suhoorTimeRemaining.hours} {t('calendar.ramadan.hours')} {t('calendar.ramadan.and')} {suhoorTimeRemaining.minutes} {t('calendar.ramadan.minutes')}
                 </p>
               </div>
             )}
@@ -194,14 +158,14 @@ export const RamadanTimesCard: React.FC<RamadanTimesCardProps> = ({
                 <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
               </svg>
             </div>
-            <h4 className="font-semibold text-orange-900 mb-1">{t.iftar}</h4>
-            <p className="text-sm text-orange-600 mb-2">{t.startsAt}</p>
+            <h4 className="font-semibold text-orange-900 mb-1">{t('calendar.ramadan.iftar')}</h4>
+            <p className="text-sm text-orange-600 mb-2">{t('calendar.ramadan.startsAt')}</p>
             <p className="text-xl font-bold text-orange-800">{formatTime(ramadanTimes.iftarTime)}</p>
             {iftarTimeRemaining && (
               <div className="mt-2 text-xs text-orange-600">
-                <p>{t.timeRemaining}</p>
+                <p>{t('calendar.ramadan.timeRemaining')}</p>
                 <p className="font-medium">
-                  {iftarTimeRemaining.hours} {t.hours} {t.and} {iftarTimeRemaining.minutes} {t.minutes}
+                  {iftarTimeRemaining.hours} {t('calendar.ramadan.hours')} {t('calendar.ramadan.and')} {iftarTimeRemaining.minutes} {t('calendar.ramadan.minutes')}
                 </p>
               </div>
             )}

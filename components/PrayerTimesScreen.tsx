@@ -1,25 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Language, PrayerTimes, Location } from '../types';
+import { PrayerTimes, Location } from '../types';
 import { PrayerTimesService } from '../services/PrayerTimesService';
 import { useUserPreferencesStore } from '../stores/userPreferencesStore';
 import { usePrayerTimesStore } from '../stores/prayerTimesStore';
 import { locationService } from '../services/LocationService';
 import { useOfflinePrayerTimes } from '../hooks/useOfflineFirst';
+import { useTranslation } from '../i18n/I18nProvider';
 import PrayerTimeCard from './PrayerTimeCard';
 import ManualLocationInput from './ManualLocationInput';
 import LocationPermissionModal from './LocationPermissionModal';
 import OfflineIndicator from './OfflineIndicator';
-import OfflineErrorBoundary from './OfflineErrorBoundary';
 import { ArrowLeftIcon, MapPinIcon, CalendarIcon } from './icons/HeroIcons';
 import { Header } from './Header';
 
 interface PrayerTimesScreenProps {
   onBack: () => void;
-  t: Record<string, string>;
-  lang: Language;
 }
 
-const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }) => {
+const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
+  const { t, isRTL } = useTranslation('prayers');
   const { preferences, setLocation } = useUserPreferencesStore();
   const { 
     currentPrayerTimes, 
@@ -147,7 +146,7 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
       month: 'long',
       day: 'numeric'
     };
-    return date.toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', options);
+    return date.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', options);
   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
@@ -173,7 +172,7 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-slate-600">{t.loading_prayer_times || 'Loading prayer times...'}</p>
+        <p className="text-slate-600">{t('loading')}</p>
       </div>
     );
   }
@@ -182,21 +181,21 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
     return (
       <div className="text-center py-8">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
-          <p className="text-red-600 font-semibold mb-2">{t.error_title || 'Error'}</p>
+          <p className="text-red-600 font-semibold mb-2">{t('common:status.error_title')}</p>
           <p className="text-red-500 text-sm">{error}</p>
         </div>
         <button
           onClick={loadPrayerTimes}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl transition-colors"
         >
-          {t.retry || 'Retry'}
+          {t('common:buttons.retry')}
         </button>
         <button
           onClick={onBack}
           className="flex items-center justify-center gap-2 w-full mt-4 text-slate-600 font-semibold hover:text-blue-600 transition-colors"
         >
           <ArrowLeftIcon className="w-5 h-5" />
-          <span>{t.btn_back || 'Back'}</span>
+          <span>{t('common:buttons.back')}</span>
         </button>
       </div>
     );
@@ -204,7 +203,7 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <Header title={t.prayer_times_title || 'Prayer Times'} onBack={onBack} isRTL={lang === 'ar'} />
+      <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
       
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Offline Indicator */}
@@ -251,7 +250,7 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-blue-800">
-              {t.todays_prayers || "Today's Prayers"}
+              {t('todays_prayers')}
             </h2>
             {isFromCache && (
               <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
@@ -261,8 +260,6 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
           </div>
           <PrayerTimeCard 
             prayerTimes={currentPrayerTimes} 
-            t={t} 
-            lang={lang}
             showCountdown={true}
           />
         </div>
@@ -272,7 +269,7 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
       {weeklyTimes.length > 0 && (
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100">
           <h2 className="text-xl font-bold text-blue-800 mb-4 text-center">
-            {t.weekly_prayers || 'Weekly Prayer Times'}
+            {t('weekly_prayers')}
           </h2>
           <div className="space-y-3">
             {weeklyTimes.map((dayTimes, index) => (
@@ -289,8 +286,6 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
                 </div>
                 <PrayerTimeCard 
                   prayerTimes={dayTimes} 
-                  t={t} 
-                  lang={lang}
                   showCountdown={false}
                   compact={true}
                 />

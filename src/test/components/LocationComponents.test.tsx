@@ -3,9 +3,43 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import LocationPermissionModal from '../../../components/LocationPermissionModal';
 import ManualLocationInput from '../../../components/ManualLocationInput';
 import LocationStatusIndicator from '../../../components/LocationStatusIndicator';
-import { translations } from '../../../constants';
 
-const mockTranslations = translations.en;
+// Mock translations for testing - these should match the i18n keys
+const mockTranslations = {
+  location_error: 'Location Error',
+  location_permission_denied: 'Location Permission Denied',
+  location_unavailable: 'Location Unavailable',
+  location_timeout: 'Location Request Timeout',
+  location_error_generic: 'An error occurred while getting your location.',
+  location_permission_help: 'To enable location services, go to your device settings and allow location access for this app.',
+  btn_manual_location: 'Enter Location Manually',
+  btn_retry: 'Try Again',
+  btn_cancel: 'Cancel',
+  manual_location_title: 'Set Your Location',
+  manual_location_desc: 'Enter your city and country to get accurate prayer times.',
+  quick_select_cities: 'Quick Select',
+  label_city: 'City',
+  label_country: 'Country',
+  label_use_coordinates: 'I know the exact coordinates',
+  label_latitude: 'Latitude',
+  label_longitude: 'Longitude',
+  placeholder_city: 'Enter your city',
+  placeholder_country: 'Enter your country',
+  error_city_required: 'City is required',
+  error_country_required: 'Country is required',
+  error_invalid_latitude: 'Latitude must be between -90 and 90',
+  error_invalid_longitude: 'Longitude must be between -180 and 180',
+  btn_set_location: 'Set Location',
+  btn_reset: 'Reset',
+  location_loading: 'Getting location...',
+  location_not_set: 'Location not set',
+  location_gps: 'GPS Location',
+  location_manual: 'Manual Location',
+  location_unknown: 'Unknown location',
+  location_tap_to_set: 'Tap to set your location',
+  status_gps: 'GPS',
+  status_manual: 'Manual',
+};
 
 describe('LocationPermissionModal', () => {
   const defaultProps = {

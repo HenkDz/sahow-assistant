@@ -1,15 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Language, Location } from '../types';
-import { QiblaService, QiblaResult, DeviceOrientationResult } from '../services/QiblaService';
+import { Location } from '../types';
+import { QiblaService, DeviceOrientationResult } from '../services/QiblaService';
 import { qiblaService } from '../services/QiblaService';
 import { locationService } from '../services/LocationService';
-import { ArrowLeftIcon, MapPinIcon, ExclamationTriangleIcon, InformationCircleIcon } from './icons/HeroIcons';
+import { useTranslation } from '../i18n/I18nProvider';
+import { MapPinIcon, ExclamationTriangleIcon, InformationCircleIcon } from './icons/HeroIcons';
 import { Header } from './Header';
 
 interface QiblaCompassProps {
   onBack: () => void;
-  t: Record<string, string>;
-  lang: Language;
   userLocation?: Location;
 }
 
@@ -23,7 +22,8 @@ interface CompassState {
   locationName: string;
 }
 
-const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocation }) => {
+const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => {
+  const { t, isRTL } = useTranslation('qibla');
   const [compassState, setCompassState] = useState<CompassState>({
     qiblaDirection: 0,
     deviceOrientation: 0,
@@ -145,10 +145,10 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-slate-600 font-semibold">
-            {t.loading_qibla || 'Finding Qibla direction...'}
+            {t('loading')}
           </p>
           <p className="text-slate-500 text-sm mt-2">
-            {t.getting_location || 'Getting your location and calculating direction to Mecca'}
+            {t('location_required')}
           </p>
         </div>
       </div>
@@ -158,27 +158,24 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
   if (compassState.error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <Header title={t.qibla_compass || 'Qibla Compass'} onBack={onBack} isRTL={lang === 'ar'} />
+        <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
         
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="text-center py-8">
             <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
               <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <p className="text-red-600 font-semibold mb-2">
-                {t.error_title || 'Error'}
+                {t('common:status.error_title')}
               </p>
               <p className="text-red-500 text-sm mb-4">{compassState.error}</p>
               
               {/* Calibration Instructions */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                 <h3 className="text-blue-800 font-semibold mb-2">
-                  {t.calibration_instructions || 'Calibration Instructions'}
+                  {t('compass.calibration')}
                 </h3>
                 <ul className="text-blue-700 text-sm text-left space-y-1">
-                  <li>• {t.hold_device_flat || 'Hold your device flat and level'}</li>
-                  <li>• {t.move_device_figure8 || 'Move your device in a figure-8 pattern'}</li>
-                  <li>• {t.avoid_magnetic_interference || 'Stay away from metal objects and electronics'}</li>
-                  <li>• {t.enable_location_services || 'Make sure location services are enabled'}</li>
+                  <li>• {t('compass.instructions')}</li>
                 </ul>
               </div>
             </div>
@@ -187,7 +184,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
               onClick={retryInitialization}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors mb-4"
             >
-              {t.retry || 'Try Again'}
+              {t('common:buttons.retry')}
             </button>
           </div>
         </div>
@@ -197,7 +194,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <Header title={t.qibla_compass || 'Qibla Compass'} onBack={onBack} isRTL={lang === 'ar'} />
+      <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
       
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Location Info */}
@@ -209,7 +206,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
         {/* Distance to Mecca */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
           <p className="text-blue-600 text-sm font-semibold mb-1">
-            {t.distance_to_mecca || 'Distance to Mecca'}
+            {t('distance_to_kaaba')}
           </p>
           <p className="text-blue-800 text-xl font-bold">
             {formatDistance(compassState.distance)}
@@ -303,13 +300,13 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
             isPointingToQibla ? 'text-green-800' : 'text-orange-800'
           }`}>
             {isPointingToQibla 
-              ? (t.pointing_to_qibla || 'Pointing towards Qibla ✓')
-              : (t.adjust_direction || 'Adjust your direction')
+              ? `${t('direction')} ✓`
+              : t('direction')
             }
           </p>
           {!isPointingToQibla && (
             <p className="text-orange-600 text-sm mt-1">
-              {t.follow_red_needle || 'Follow the red needle to find Qibla direction'}
+              {t('direction')}
             </p>
           )}
         </div>
@@ -322,15 +319,15 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
             <InformationCircleIcon className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-yellow-800 font-semibold text-sm mb-2">
-                {t.compass_needs_calibration || 'Compass needs calibration'}
+                {t('compass.calibration')}
               </p>
               <button
                 onClick={() => setShowCalibrationInstructions(!showCalibrationInstructions)}
                 className="text-yellow-700 text-sm underline hover:text-yellow-800 transition-colors"
               >
                 {showCalibrationInstructions 
-                  ? (t.hide_instructions || 'Hide instructions')
-                  : (t.show_instructions || 'Show calibration instructions')
+                  ? t('compass.calibration')
+                  : t('compass.calibration')
                 }
               </button>
             </div>
@@ -339,10 +336,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
           {showCalibrationInstructions && (
             <div className="mt-3 pt-3 border-t border-yellow-200">
               <ul className="text-yellow-700 text-sm space-y-1">
-                <li>• {t.hold_device_flat || 'Hold your device flat and level'}</li>
-                <li>• {t.move_device_figure8 || 'Move your device in a figure-8 pattern'}</li>
-                <li>• {t.avoid_magnetic_interference || 'Stay away from metal objects and electronics'}</li>
-                <li>• {t.rotate_slowly || 'Rotate slowly until the compass stabilizes'}</li>
+                <li>• {t('compass.instructions')}</li>
               </ul>
             </div>
           )}
@@ -352,10 +346,10 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, t, lang, userLocati
       {/* Additional Information */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
         <h3 className="font-semibold text-slate-800 mb-2">
-          {t.qibla_info || 'About Qibla'}
+          {t('title')}
         </h3>
         <p className="text-slate-600 text-sm leading-relaxed">
-          {t.qibla_description || 'The Qibla is the direction Muslims face during prayer, pointing towards the Kaaba in Mecca, Saudi Arabia. This compass calculates the precise direction from your current location.'}
+          {t('direction')}
         </p>
       </div>
       </div>
