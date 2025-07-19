@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Language } from '../types';
 import { SettingsService, ComprehensiveUserPreferences } from '../services/SettingsService';
+import { useTranslation } from '../i18n/I18nProvider';
 import { Header } from './Header';
 import MadhabSelector from './MadhabSelector';
 import NotificationSettings from './NotificationSettings';
@@ -8,6 +8,7 @@ import LanguageSettings from './LanguageSettings';
 import DisplaySettings from './DisplaySettings';
 import CalculationMethodSelector from './CalculationMethodSelector';
 import OfflineErrorBoundary from './OfflineErrorBoundary';
+import RefreshSettings from './RefreshSettings';
 
 // Icons
 const ChevronRightIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -66,6 +67,12 @@ const HeartIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
+const RefreshIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+);
+
 const ArrowLeftIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -74,9 +81,6 @@ const ArrowLeftIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
 
 interface SettingsScreenProps {
   onBack: () => void;
-  t: Record<string, string>;
-  lang: Language;
-  onLanguageChange: (lang: Language) => void;
 }
 
 type SettingsSection = 
@@ -86,14 +90,11 @@ type SettingsSection =
   | 'display' 
   | 'language' 
   | 'privacy' 
-  | 'accessibility';
+  | 'accessibility'
+  | 'refresh';
 
-const SettingsScreen: React.FC<SettingsScreenProps> = ({ 
-  onBack, 
-  t, 
-  lang, 
-  onLanguageChange 
-}) => {
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
+  const { t, isRTL } = useTranslation('common');
   const [preferences, setPreferences] = useState<ComprehensiveUserPreferences | null>(null);
   const [currentSection, setCurrentSection] = useState<SettingsSection>('main');
   const [loading, setLoading] = useState(true);
@@ -231,7 +232,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <Header title={t.settings_title || 'Settings'} onBack={onBack} isRTL={lang === 'ar'} />
+        <Header title={t('buttons.settings')} onBack={onBack} isRTL={isRTL} />
         
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -243,7 +244,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   if (!preferences) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <Header title={t.settings_title || 'Settings'} onBack={onBack} isRTL={lang === 'ar'} />
+        <Header title={t('buttons.settings')} onBack={onBack} isRTL={isRTL} />
         
         <div className="text-center py-8">
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 mx-4">
@@ -307,6 +308,15 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
         descriptionAr: 'إعدادات البيانات والخصوصية',
         icon: ShieldIcon,
         badge: preferences.privacy.analyticsEnabled ? t.enabled || 'Enabled' : t.disabled || 'Disabled'
+      },
+      {
+        id: 'refresh' as SettingsSection,
+        title: t.settings_refresh || 'Data Refresh',
+        titleAr: 'تحديث البيانات',
+        description: t.settings_refresh_desc || 'Control when to refresh data',
+        descriptionAr: 'التحكم في تحديث البيانات',
+        icon: RefreshIcon,
+        badge: t.settings || 'Settings'
       },
       {
         id: 'accessibility' as SettingsSection,
@@ -449,6 +459,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
         );
 
+      case 'refresh':
+        return (
+          <div className="px-4 py-6">
+            <RefreshSettings />
+          </div>
+        );
+
       default:
         return renderMainMenu();
     }
@@ -461,6 +478,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
       notifications: t.settings_notifications || 'Notifications',
       display: t.settings_display || 'Display',
       language: t.settings_language || 'Language',
+      refresh: t.settings_refresh || 'Data Refresh',
       privacy: t.settings_privacy || 'Privacy',
       accessibility: t.settings_accessibility || 'Accessibility'
     };

@@ -25,7 +25,9 @@ export class OfflineStorageService {
     LAST_SYNC: 'last_sync',
     NETWORK_STATUS: 'network_status',
     QIBLA_DIRECTION: 'cached_qibla_direction',
-    ISLAMIC_CALENDAR: 'cached_islamic_calendar'
+    ISLAMIC_CALENDAR: 'cached_islamic_calendar',
+    REFRESH_PREFERENCES: 'refresh_preferences',
+    DISMISSED_PROMPTS: 'dismissed_refresh_prompts'
   };
 
   private static readonly CACHE_EXPIRY = {
@@ -412,7 +414,7 @@ export class OfflineStorageService {
   }
 
   /**
-   * Check if data needs synchronization
+   * Check if data needs synchronization based on intelligent criteria
    */
   static async needsSync(): Promise<boolean> {
     try {
@@ -422,11 +424,112 @@ export class OfflineStorageService {
       const now = new Date();
       const timeSinceSync = now.getTime() - lastSync.getTime();
       
-      // Sync if more than 6 hours have passed
-      return timeSinceSync > 6 * 60 * 60 * 1000;
+      // Only sync if more than 24 hours have passed
+      return timeSinceSync > 24 * 60 * 60 * 1000;
     } catch (error) {
       console.error('Error checking sync status:', error);
       return true;
+    }
+  }
+
+  /**
+   * Check if data is critically outdated and requires immediate attention
+   */
+  static async isCriticallyOutdated(): Promise<boolean> {
+    try {
+      const lastSync = await this.getLastSync();
+      if (!lastSync) return true;
+
+      const now = new Date();
+      const timeSinceSync = now.getTime() - lastSync.getTime();
+      
+      // Critical if more than 3 days old
+      return timeSinceSync > 3 * 24 * 60 * 60 * 1000;
+    } catch (error) {
+      console.error('Error checking critical sync status:', error);
+      return true;
+    }
+  }
+
+  /**
+   * Check if prayer times specifically need refresh (more frequent for accuracy)
+   */
+  static async prayerTimesNeedRefresh(): Promise<boolean> {
+    try {
+      const cachedPrayerTimes = await this.getCachedPrayerTimes();
+      if (!cachedPrayerTimes) return true;
+
+      const now = new Date();
+      const cacheAge = now.getTime() - cachedPrayerTimes.cachedAt.getTime();
+      
+      // Prayer times should be refreshed daily
+      return cacheAge > 24 * 60 * 60 * 1000;
+    } catch (error) {
+      console.error('Error checking prayer times refresh status:', error);
+      return true;
+    }
+  }
+
+  /**
+   * Get cache freshness status with detailed information
+   */
+  static async getCacheFreshness(): Promise<{
+    status: 'fresh' | 'stale' | 'outdated' | 'critical';
+    lastSync: Date | null;
+    hoursOld: number;
+    shouldPromptRefresh: boolean;
+    criticallyOutdated: boolean;
+  }> {
+    try {
+      const lastSync = await this.getLastSync();
+      
+      if (!lastSync) {
+        return {
+          status: 'critical',
+          lastSync: null,
+          hoursOld: Infinity,
+          shouldPromptRefresh: true,
+          criticallyOutdated: true
+        };
+      }
+
+      const now = new Date();
+      const ageMs = now.getTime() - lastSync.getTime();
+      const hoursOld = ageMs / (1000 * 60 * 60);
+
+      let status: 'fresh' | 'stale' | 'outdated' | 'critical';
+      let shouldPromptRefresh = false;
+      let criticallyOutdated = false;
+
+      if (hoursOld < 6) {
+        status = 'fresh';
+      } else if (hoursOld < 24) {
+        status = 'stale';
+      } else if (hoursOld < 72) { // 3 days
+        status = 'outdated';
+        shouldPromptRefresh = true;
+      } else {
+        status = 'critical';
+        shouldPromptRefresh = true;
+        criticallyOutdated = true;
+      }
+
+      return {
+        status,
+        lastSync,
+        hoursOld,
+        shouldPromptRefresh,
+        criticallyOutdated
+      };
+    } catch (error) {
+      console.error('Error getting cache freshness:', error);
+      return {
+        status: 'critical',
+        lastSync: null,
+        hoursOld: Infinity,
+        shouldPromptRefresh: true,
+        criticallyOutdated: true
+      };
     }
   }
 
@@ -469,5 +572,127 @@ export class OfflineStorageService {
    */
   private static toRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
+  }
+
+  /**
+   * Set user preferences for refresh prompts
+   */
+  static async setRefreshPreferences(preferences: {
+    enableAutoPrompts: boolean;
+    promptFrequency: 'conservative' | 'normal' | 'aggressive';
+    dismissedUntil?: Date;
+  }): Promise<void> {
+    try {
+      await Preferences.set({
+        key: this.STORAGE_KEYS.REFRESH_PREFERENCES,
+        value: JSON.stringify({
+          ...preferences,
+          dismissedUntil: preferences.dismissedUntil?.toISOString()
+        })
+      });
+    } catch (error) {
+      console.error('Error setting refresh preferences:', error);
+    }
+  }
+
+  /**
+   * Get user preferences for refresh prompts
+   */
+  static async getRefreshPreferences(): Promise<{
+    enableAutoPrompts: boolean;
+    promptFrequency: 'conservative' | 'normal' | 'aggressive';
+    dismissedUntil?: Date;
+  }> {
+    try {
+      const { value } = await Preferences.get({ key: this.STORAGE_KEYS.REFRESH_PREFERENCES });
+      
+      if (!value) {
+        return {
+          enableAutoPrompts: true,
+          promptFrequency: 'normal'
+        };
+      }
+
+      const prefs = JSON.parse(value);
+      return {
+        ...prefs,
+        dismissedUntil: prefs.dismissedUntil ? new Date(prefs.dismissedUntil) : undefined
+      };
+    } catch (error) {
+      console.error('Error getting refresh preferences:', error);
+      return {
+        enableAutoPrompts: true,
+        promptFrequency: 'normal'
+      };
+    }
+  }
+
+  /**
+   * Dismiss refresh prompts for a specified duration
+   */
+  static async dismissRefreshPromptsFor(hours: number): Promise<void> {
+    try {
+      const dismissedUntil = new Date();
+      dismissedUntil.setHours(dismissedUntil.getHours() + hours);
+      
+      const currentPrefs = await this.getRefreshPreferences();
+      await this.setRefreshPreferences({
+        ...currentPrefs,
+        dismissedUntil
+      });
+    } catch (error) {
+      console.error('Error dismissing refresh prompts:', error);
+    }
+  }
+
+  /**
+   * Check if refresh prompts should be shown based on user preferences
+   */
+  static async shouldShowRefreshPrompt(): Promise<boolean> {
+    try {
+      const prefs = await this.getRefreshPreferences();
+      
+      // Check if prompts are disabled
+      if (!prefs.enableAutoPrompts) return false;
+      
+      // Check if prompts are dismissed
+      if (prefs.dismissedUntil && new Date() < prefs.dismissedUntil) {
+        return false;
+      }
+      
+      const freshness = await this.getCacheFreshness();
+      
+      // Apply frequency preferences
+      switch (prefs.promptFrequency) {
+        case 'conservative':
+          return freshness.criticallyOutdated; // Only show for critical cases
+        case 'normal':
+          return freshness.shouldPromptRefresh; // Show for outdated data
+        case 'aggressive':
+          return freshness.hoursOld > 12; // Show more frequently
+        default:
+          return freshness.shouldPromptRefresh;
+      }
+    } catch (error) {
+      console.error('Error checking if should show refresh prompt:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Record that user has seen and dismissed a refresh prompt
+   */
+  static async recordPromptDismissal(type: 'temporary' | 'session' | 'extended'): Promise<void> {
+    try {
+      const hours = {
+        temporary: 2,
+        session: 8,
+        extended: 24
+      };
+      
+      await this.dismissRefreshPromptsFor(hours[type]);
+    } catch (error) {
+      console.error('Error recording prompt dismissal:', error);
+    }
   }
 }

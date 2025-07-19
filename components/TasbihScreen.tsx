@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Language } from '../types';
 import { TasbihService, TasbihData, DhikrOption, DEFAULT_DHIKR_OPTIONS } from '../services/TasbihService';
+import { useTranslation } from '../i18n/I18nProvider';
 import { ArrowPathIcon, Cog6ToothIcon, CheckIcon } from './icons/HeroIcons';
 import { Header } from './Header';
 
 interface TasbihScreenProps {
-  lang: Language;
   onBack: () => void;
-  t: any;
 }
 
 interface TasbihScreenState {
@@ -19,7 +17,8 @@ interface TasbihScreenState {
   history: Array<TasbihData & { completedAt: Date }>;
 }
 
-export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
+export default function TasbihScreen({ onBack }: TasbihScreenProps) {
+  const { t, isRTL } = useTranslation('tasbih');
   const [state, setState] = useState<TasbihScreenState>({
     tasbihData: {
       count: 0,
@@ -35,7 +34,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
     history: []
   });
 
-  const isRTL = lang === 'ar';
+
 
   useEffect(() => {
     loadTasbihData();
@@ -124,7 +123,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-green-50 to-blue-50 ${isRTL ? 'rtl' : 'ltr'}`}>
-      <Header title={t.tasbih_title || 'Digital Tasbih'} onBack={onBack} isRTL={isRTL} />
+      <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
       
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center justify-end gap-2 mb-6">
@@ -138,18 +137,18 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
             onClick={loadHistory}
             className="px-3 py-1 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
           >
-            {t.history || 'History'}
+            {t('common:buttons.history')}
           </button>
         </div>
         {/* Settings Panel */}
         {state.showSettings && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-bold mb-4">{t.settings || 'Settings'}</h3>
+            <h3 className="text-lg font-bold mb-4">{t('common:buttons.settings')}</h3>
             
             {/* Dhikr Selection */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                {t.selectDhikr || 'Select Dhikr'}
+                {t('select_dhikr')}
               </label>
               <div className="space-y-2">
                 {DEFAULT_DHIKR_OPTIONS.map((option) => (
@@ -180,7 +179,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
             {/* Goal Setting */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                {t.goal || 'Goal'}
+                {t('goal')}
               </label>
               <div className="flex gap-2">
                 {[33, 99, 100].map((goal) => (
@@ -245,7 +244,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
                   {state.tasbihData.count}
                 </div>
                 <div className="text-sm text-gray-500">
-                  {t.of || 'of'} {state.tasbihData.goal}
+                  {t('of')} {state.tasbihData.goal}
                 </div>
               </div>
             </div>
@@ -254,11 +253,11 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
           {/* Remaining Count */}
           <div className="text-center mb-8">
             <div className="text-2xl font-semibold text-green-600">
-              {getRemainingCount()} {t.remaining || 'remaining'}
+              {getRemainingCount()} {t('remaining')}
             </div>
             {state.tasbihData.count >= state.tasbihData.goal && (
               <div className="text-lg text-green-600 font-medium mt-2">
-                🎉 {t.goalCompleted || 'Goal Completed!'} 🎉
+                🎉 {t('goal_completed')} 🎉
               </div>
             )}
           </div>
@@ -269,7 +268,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
               onClick={handleIncrement}
               className="w-32 h-32 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white text-2xl font-bold shadow-lg hover:from-green-600 hover:to-green-700 active:scale-95 transition-all"
             >
-              {t.tap || 'TAP'}
+              {t('tap')}
             </button>
           </div>
         </div>
@@ -281,7 +280,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
             className="flex items-center gap-2 px-6 py-3 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors mx-auto"
           >
             <ArrowPathIcon className="h-5 w-5" />
-            {t.reset || 'Reset'}
+            {t('common:buttons.reset')}
           </button>
         </div>
       </div>
@@ -290,22 +289,22 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
       {state.showResetConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 mx-4 max-w-sm w-full">
-            <h3 className="text-lg font-bold mb-4">{t.confirmReset || 'Confirm Reset'}</h3>
+            <h3 className="text-lg font-bold mb-4">{t('confirm_reset')}</h3>
             <p className="text-gray-600 mb-6">
-              {t.resetWarning || 'Are you sure you want to reset the counter? This will save your current progress to history.'}
+              {t('reset_warning')}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setState(prev => ({ ...prev, showResetConfirmation: false }))}
                 className="flex-1 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
               >
-                {t.cancel || 'Cancel'}
+                {t('common:buttons.cancel')}
               </button>
               <button
                 onClick={handleReset}
                 className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
               >
-                {t.reset || 'Reset'}
+                {t('common:buttons.reset')}
               </button>
             </div>
           </div>
@@ -317,7 +316,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 mx-4 max-w-md w-full max-h-96 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">{t.history || 'History'}</h3>
+              <h3 className="text-lg font-bold">{t('common:buttons.history')}</h3>
               <button
                 onClick={() => setState(prev => ({ ...prev, showHistory: false }))}
                 className="text-gray-500 hover:text-gray-700"
@@ -327,7 +326,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
             </div>
             {state.history.length === 0 ? (
               <p className="text-gray-500 text-center py-8">
-                {t.noHistory || 'No history yet'}
+                {t('no_history')}
               </p>
             ) : (
               <div className="space-y-3">
@@ -335,7 +334,7 @@ export default function TasbihScreen({ lang, onBack, t }: TasbihScreenProps) {
                   <div key={index} className="border rounded-lg p-4">
                     <div className={`text-lg mb-1 ${isRTL ? 'font-[Tajawal]' : ''}`}>{item.dhikrTextArabic}</div>
                     <div className="text-sm text-gray-600 mb-2">
-                      {item.count} {t.of || 'of'} {item.goal}
+                      {item.count} {t('of')} {item.goal}
                     </div>
                     <div className="text-xs text-gray-500">
                       {item.completedAt.toLocaleDateString()} {item.completedAt.toLocaleTimeString()}
