@@ -1,5 +1,6 @@
 import * as hijriDateLib from 'hijri-date';
 import { IslamicDate, Location, PrayerTimes } from '../types';
+import { OfflineStorageService } from './OfflineStorageService';
 
 const HijriDate = hijriDateLib.default;
 
@@ -151,7 +152,7 @@ export class IslamicCalendarService {
    * This uses the Fajr time for Suhoor end and Maghrib time for Iftar
    */
   static async calculateRamadanTimes(
-    location: Location, 
+    _location: Location, 
     date: Date,
     prayerTimes: PrayerTimes
   ): Promise<RamadanTimes> {
@@ -260,6 +261,120 @@ export class IslamicCalendarService {
       return `${islamicDate.hijriDay} ${monthName} ${islamicDate.hijriYear} هـ`;
     } else {
       return `${islamicDate.hijriDay} ${monthName} ${islamicDate.hijriYear} AH`;
+    }
+  }
+
+  /**
+   * Cache Islamic calendar data for offline use
+   */
+  static async cacheIslamicCalendarData(
+    startDate: Date,
+    endDate: Date,
+    islamicDates: IslamicDate[]
+  ): Promise<void> {
+    try {
+      const cacheData = {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        islamicDates,
+        cachedAt: new Date().toISOString()
+      };
+
+      // Use the existing cache method from OfflineStorageService
+      await OfflineStorageService.cacheIslamicCalendar(cacheData);
+    } catch (error) {
+      console.error('Error caching Islamic calendar data:', error);
+    }
+  }
+
+  /**
+   * Get cached Islamic calendar data
+   */
+  static async getCachedIslamicCalendarData(
+    startDate: Date,
+    endDate: Date
+  ): Promise<IslamicDate[] | null> {
+    try {
+      const cached = await OfflineStorageService.getCachedIslamicCalendar();
+      
+      if (!cached) return null;
+
+      const cachedStartDate = new Date(cached.startDate);
+      const cachedEndDate = new Date(cached.endDate);
+
+      // Check if requested range is within cached range
+      if (startDate >= cachedStartDate && endDate <= cachedEndDate) {
+        // Filter the cached data to match the requested range
+        return cached.islamicDates.filter((date: IslamicDate) => {
+          const islamicDate = new Date(date.gregorianDate);
+          return islamicDate >= startDate && islamicDate <= endDate;
+        });
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error retrieving cached Islamic calendar data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get Islamic date range with offline support
+   */
+  static async getIslamicDateRangeWithCache(
+    startDate: Date,
+    days: number
+  ): Promise<IslamicDate[]> {
+    try {
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + days - 1);
+
+      // Try to get from cache first
+      const cachedData = await this.getCachedIslamicCalendarData(startDate, endDate);
+      if (cachedData) {
+        return cachedData;
+      }
+
+      // If not in cache, calculate fresh
+      const islamicDates = this.getIslamicDateRange(startDate, days);
+      
+      // Cache the results
+      await this.cacheIslamicCalendarData(startDate, endDate, islamicDates);
+      
+      return islamicDates;
+    } catch (error) {
+      console.error('Error getting Islamic date range with cache:', error);
+      // Fallback to regular calculation
+      return this.getIslamicDateRange(startDate, days);
+    }
+  }
+
+  /**
+   * Get Ramadan times with offline support
+   */
+  static async calculateRamadanTimesWithCache(
+    location: Location,
+    date: Date,
+    prayerTimes: PrayerTimes
+  ): Promise<RamadanTimes> {
+    try {
+      // For Ramadan times, we can use the prayer times directly
+      // as they are already cached by the PrayerTimesService
+      return this.calculateRamadanTimes(location, date, prayerTimes);
+    } catch (error) {
+      console.error('Error calculating Ramadan times with cache:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear cached Islamic calendar data
+   */
+  static async clearIslamicCalendarCache(): Promise<void> {
+    try {
+      await OfflineStorageService.clearAllCache();
+    } catch (error) {
+      console.error('Error clearing Islamic calendar cache:', error);
     }
   }
 }

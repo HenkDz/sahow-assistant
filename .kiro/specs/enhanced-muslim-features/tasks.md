@@ -155,34 +155,55 @@
   - Create audio availability indicators for supported content
   - _Requirements: 4.1, 4.4_
 
-- [ ] 8. Implement digital Tasbih counter
-- [ ] 8.1 Create TasbihService with haptic feedback
+- [x] 8. Implement digital Tasbih counter
+- [x] 8.1 Create TasbihService with haptic feedback
   - Implement counter logic with increment, reset, and goal detection
   - Add haptic feedback using Capacitor Haptics for milestone achievements
   - Create counter persistence to maintain count across app sessions
   - Write unit tests for counter logic and persistence
   - _Requirements: 5.1, 5.2, 5.3, 5.5_
 
-- [ ] 8.2 Build Tasbih counter UI component
+- [x] 8.2 Build Tasbih counter UI component
   - Create TasbihScreen component with large, accessible counter button
   - Implement visual feedback for goal achievements (33, 99, 100)
   - Add reset confirmation dialog and counter history
   - Create customizable dhikr text selection and display
   - _Requirements: 5.1, 5.4_
 
-- [ ] 9. Implement offline functionality and data persistence
-- [ ] 9.1 Create OfflineStorageService using Capacitor Storage
+- [x] 9. Implement offline functionality and data persistence
+- [x] 9.1 Create OfflineStorageService using Capacitor Storage
+  - Implement prayer times caching with location-based invalidation
+  - Create user preferences persistence with automatic sync
+  - Add network status tracking and offline mode detection
+  - Cache Qibla direction calculations for offline compass use
+  - _Requirements: 6.1, 6.2, 6.3, 6.4_
+
+- [x] 9.2 Add offline data indicators and sync controls
+  - Create offline status indicator showing cached data availability
+  - Implement background data synchronization when connection returns
+  - Add manual sync triggers and cache management controls
+  - Display sync status and last update timestamps
+  - _Requirements: 6.4, 6.5_
+
+- [x] 9.3 Integrate offline capabilities into existing services
+  - Update PrayerTimesService with automatic caching and offline fallback
+  - Add QiblaService offline support for compass functionality
+  - Integrate IslamicCalendarService with offline date calculations
+  - Create offline-aware hooks for components to use cached data
+  - _Requirements: 6.1, 6.2, 6.3_
   - Implement prayer times caching for offline access
   - Add user preferences and settings persistence
   - Create data synchronization logic for when connectivity returns
   - Write integration tests for offline/online data sync scenarios
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 9.2 Add offline mode indicators and functionality
+- [x] 9.4 Add offline mode indicators and graceful degradation
   - Create OfflineIndicator component to show connection status
   - Implement graceful degradation for features requiring internet
   - Add cached data age indicators and refresh prompts
   - Create offline-first user experience with appropriate messaging
+  - Add OfflineErrorBoundary for feature-specific error handling
+  - Create offline-first hooks for better user experience
   - _Requirements: 6.1, 6.2, 6.3_
 
 - [ ] 10. Build comprehensive settings and personalization

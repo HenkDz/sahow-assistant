@@ -8,6 +8,7 @@ import {
   Qibla
 } from 'adhan';
 import { PrayerTimes, Location, CalculationMethod, Madhab } from '../types';
+import { OfflineStorageService } from './OfflineStorageService';
 
 export class PrayerTimesService {
   /**
@@ -61,6 +62,113 @@ export class PrayerTimesService {
     } catch (error) {
       throw new Error(`Failed to calculate prayer times: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Get prayer times with offline caching support
+   */
+  static async getPrayerTimesWithCache(
+    location: Location,
+    date: Date = new Date(),
+    calculationMethod: CalculationMethod = CalculationMethod.MWL,
+    madhab: Madhab = Madhab.HANAFI
+  ): Promise<{ prayerTimes: PrayerTimes; isFromCache: boolean }> {
+    try {
+      // Try to get cached prayer times first
+      const cachedData = await OfflineStorageService.getCachedPrayerTimes();
+      
+      if (cachedData && this.isCacheValid(cachedData, location, calculationMethod, madhab, date)) {
+        const todayTimes = cachedData.data.find(pt => 
+          pt.date.toDateString() === date.toDateString()
+        );
+        
+        if (todayTimes) {
+          return { prayerTimes: todayTimes, isFromCache: true };
+        }
+      }
+
+      // Calculate fresh prayer times
+      const prayerTimes = await this.calculatePrayerTimes(location, date, calculationMethod, madhab);
+      
+      // Cache the result (along with weekly data for efficiency)
+      const weeklyTimes = await this.calculateWeeklyPrayerTimes(location, date, 7, calculationMethod, madhab);
+      await OfflineStorageService.cachePrayerTimes(weeklyTimes, location, calculationMethod, madhab);
+      
+      return { prayerTimes, isFromCache: false };
+    } catch (error) {
+      // If calculation fails, try to return cached data anyway
+      const cachedData = await OfflineStorageService.getCachedPrayerTimes();
+      if (cachedData) {
+        const todayTimes = cachedData.data.find(pt => 
+          pt.date.toDateString() === date.toDateString()
+        );
+        
+        if (todayTimes) {
+          return { prayerTimes: todayTimes, isFromCache: true };
+        }
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Check if cached prayer times are still valid
+   */
+  private static isCacheValid(
+    cachedData: any,
+    location: Location,
+    calculationMethod: CalculationMethod,
+    madhab: Madhab,
+    date: Date
+  ): boolean {
+    // Check if location matches (within 1km tolerance)
+    const distance = this.calculateDistance(
+      location.latitude,
+      location.longitude,
+      cachedData.location.latitude,
+      cachedData.location.longitude
+    );
+    
+    if (distance > 1) return false;
+    
+    // Check if calculation method and madhab match
+    if (cachedData.calculationMethod !== calculationMethod) return false;
+    if (cachedData.madhab !== madhab) return false;
+    
+    // Check if we have data for the requested date
+    const hasRequestedDate = cachedData.data.some((pt: PrayerTimes) => 
+      pt.date.toDateString() === date.toDateString()
+    );
+    
+    return hasRequestedDate;
+  }
+
+  /**
+   * Calculate distance between two coordinates in kilometers
+   */
+  private static calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = this.toRadians(lat2 - lat1);
+    const dLon = this.toRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  /**
+   * Convert degrees to radians
+   */
+  private static toRadians(degrees: number): number {
+    return degrees * (Math.PI / 180);
   }
 
   /**
@@ -263,6 +371,49 @@ export class PrayerTimesService {
       return bearing;
     } catch (error) {
       throw new Error(`Failed to calculate Qibla direction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get cached prayer times for a specific location and date
+   */
+  static async getCachedPrayerTimes(
+    location: Location,
+    date: Date
+  ): Promise<{ prayerTimes: PrayerTimes; isFromCache: boolean } | null> {
+    try {
+      const cachedData = await OfflineStorageService.getCachedPrayerTimes();
+      
+      if (!cachedData) {
+        return null;
+      }
+
+      // Check if location matches (within 1km tolerance)
+      const distance = this.calculateDistance(
+        location.latitude,
+        location.longitude,
+        cachedData.location.latitude,
+        cachedData.location.longitude
+      );
+      
+      if (distance > 1) return null;
+
+      // Find prayer times for the requested date
+      const prayerTimes = cachedData.data.find((pt: PrayerTimes) => 
+        pt.date.toDateString() === date.toDateString()
+      );
+
+      if (!prayerTimes) {
+        return null;
+      }
+
+      return {
+        prayerTimes,
+        isFromCache: true
+      };
+    } catch (error) {
+      console.error('Error getting cached prayer times:', error);
+      return null;
     }
   }
 }

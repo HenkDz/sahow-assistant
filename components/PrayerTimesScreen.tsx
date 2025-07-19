@@ -4,9 +4,12 @@ import { PrayerTimesService } from '../services/PrayerTimesService';
 import { useUserPreferencesStore } from '../stores/userPreferencesStore';
 import { usePrayerTimesStore } from '../stores/prayerTimesStore';
 import { locationService } from '../services/LocationService';
+import { useOfflinePrayerTimes } from '../hooks/useOfflineFirst';
 import PrayerTimeCard from './PrayerTimeCard';
 import ManualLocationInput from './ManualLocationInput';
 import LocationPermissionModal from './LocationPermissionModal';
+import OfflineIndicator from './OfflineIndicator';
+import OfflineErrorBoundary from './OfflineErrorBoundary';
 import { ArrowLeftIcon, MapPinIcon, CalendarIcon } from './icons/HeroIcons';
 import { Header } from './Header';
 
@@ -31,6 +34,8 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
   const [weeklyTimes, setWeeklyTimes] = useState<PrayerTimes[]>([]);
   const [showManualLocationInput, setShowManualLocationInput] = useState(false);
   const [showLocationPermissionModal, setShowLocationPermissionModal] = useState(false);
+  const [isFromCache, setIsFromCache] = useState(false);
+  const { state, executeWithFallback, getFeatureAvailability, getCacheStatusMessage } = useOfflinePrayerTimes();
 
   useEffect(() => {
     if (!preferences.location) {
@@ -74,24 +79,49 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
     setError(null);
 
     try {
-      // Load today's prayer times
-      const todayTimes = await PrayerTimesService.calculatePrayerTimes(
-        preferences.location,
-        selectedDate,
-        preferences.calculationMethod,
-        preferences.madhab
+      const result = await executeWithFallback(
+        // Online action: fresh calculation
+        async () => {
+          const result = await PrayerTimesService.getPrayerTimesWithCache(
+            preferences.location!,
+            selectedDate,
+            preferences.calculationMethod,
+            preferences.madhab
+          );
+          setIsFromCache(false);
+          return result;
+        },
+        // Offline fallback: use cached data
+        async () => {
+          const result = await PrayerTimesService.getCachedPrayerTimes(
+            preferences.location!,
+            selectedDate
+          );
+          if (!result) {
+            throw new Error('No cached prayer times available for this location and date.');
+          }
+          setIsFromCache(true);
+          return result;
+        }
       );
-      setPrayerTimes(todayTimes);
+      
+      setPrayerTimes(result.prayerTimes);
 
-      // Load weekly prayer times
-      const weekly = await PrayerTimesService.calculateWeeklyPrayerTimes(
-        preferences.location,
-        selectedDate,
-        7,
-        preferences.calculationMethod,
-        preferences.madhab
-      );
-      setWeeklyTimes(weekly);
+      // Load weekly prayer times if available
+      try {
+        const weekly = await PrayerTimesService.calculateWeeklyPrayerTimes(
+          preferences.location,
+          selectedDate,
+          7,
+          preferences.calculationMethod,
+          preferences.madhab
+        );
+        setWeeklyTimes(weekly);
+      } catch (weeklyError) {
+        // Weekly data is optional, don't fail the entire load
+        console.warn('Could not load weekly prayer times:', weeklyError);
+        setWeeklyTimes([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load prayer times');
     } finally {
@@ -124,6 +154,19 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
     const newDate = new Date(selectedDate);
     newDate.setDate(selectedDate.getDate() + (direction === 'next' ? 1 : -1));
     setSelectedDate(newDate);
+  };
+
+  const handleSyncData = async () => {
+    if (state.isOnline) {
+      setLoading(true);
+      try {
+        await loadPrayerTimes();
+      } catch (error) {
+        console.error('Sync failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   if (isLoading) {
@@ -164,6 +207,9 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
       <Header title={t.prayer_times_title || 'Prayer Times'} onBack={onBack} isRTL={lang === 'ar'} />
       
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+        {/* Offline Indicator */}
+        <OfflineIndicator onRetry={handleSyncData} />
+
         {/* Location Info */}
         {preferences.location && (
           <div className="flex items-center justify-center gap-2 text-blue-700 mb-4">
@@ -203,9 +249,16 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack, t, lang }
       {/* Today's Prayer Times */}
       {currentPrayerTimes && (
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100">
-          <h2 className="text-xl font-bold text-blue-800 mb-4 text-center">
-            {t.todays_prayers || "Today's Prayers"}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-blue-800">
+              {t.todays_prayers || "Today's Prayers"}
+            </h2>
+            {isFromCache && (
+              <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+                Cached
+              </span>
+            )}
+          </div>
           <PrayerTimeCard 
             prayerTimes={currentPrayerTimes} 
             t={t} 
