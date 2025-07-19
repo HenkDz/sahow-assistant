@@ -6,7 +6,6 @@ import { I18nSettingsProvider } from './i18n/I18nSettingsProvider';
 import { useSettingsInitialization } from './hooks/useSettingsInitialization';
 import { SettingsLoadingScreen } from './components/SettingsLoadingScreen';
 import { SettingsErrorBoundary } from './components/SettingsErrorBoundary';
-import LanguageSwitcher from './components/LanguageSwitcher';
 import WelcomeScreen from './components/sahw-assistant/WelcomeScreen';
 import QuestionScreen from './components/sahw-assistant/QuestionScreen';
 import ResultScreen from './components/sahw-assistant/ResultScreen';
@@ -78,10 +77,6 @@ function AppContent() {
       
       {/* Offline Indicator */}
       <OfflineIndicator className="fixed top-12 left-4 z-50" showDetails={false} />
-      
-      <div className="fixed top-16 right-4 z-50">
-        <LanguageSwitcher />
-      </div>
 
       {view === 'main-navigation' && (
         <MainNavigationScreen onNavigate={handleNavigate} />

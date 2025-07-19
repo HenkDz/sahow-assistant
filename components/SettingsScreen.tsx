@@ -11,18 +11,6 @@ import OfflineErrorBoundary from './OfflineErrorBoundary';
 import RefreshSettings from './RefreshSettings';
 
 // Icons
-const ChevronRightIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-  </svg>
-);
-
-const ChevronLeftIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-  </svg>
-);
-
 const BellIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -48,13 +36,6 @@ const CalculatorIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
-const CogIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-  </svg>
-);
-
 const ShieldIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -73,12 +54,6 @@ const RefreshIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
-const ArrowLeftIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-  </svg>
-);
-
 interface SettingsScreenProps {
   onBack: () => void;
 }
@@ -94,7 +69,12 @@ type SettingsSection =
   | 'refresh';
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
-  const { t, isRTL } = useTranslation('common');
+  const { t, isRTL, currentLanguage } = useTranslation('settings');
+  
+  // Temporary fallback for legacy components
+  const legacyT = new Proxy({} as Record<string, string>, {
+    get: () => ''
+  });
   const [preferences, setPreferences] = useState<ComprehensiveUserPreferences | null>(null);
   const [currentSection, setCurrentSection] = useState<SettingsSection>('main');
   const [loading, setLoading] = useState(true);
@@ -114,30 +94,6 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
       setError(err instanceof Error ? err.message : 'Failed to load preferences');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const savePreferences = async (updates: Partial<ComprehensiveUserPreferences>) => {
-    if (!preferences) return;
-
-    try {
-      setSaving(true);
-      setError(null);
-      
-      const updatedPreferences = { ...preferences, ...updates };
-      
-      // Validate before saving
-      const validation = SettingsService.validatePreferences(updatedPreferences);
-      if (!validation.isValid) {
-        throw new Error(validation.errors.join(', '));
-      }
-
-      await SettingsService.savePreferences(updatedPreferences);
-      setPreferences(updatedPreferences);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save preferences');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -232,7 +188,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <Header title={t('buttons.settings')} onBack={onBack} isRTL={isRTL} />
+        <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
         
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -244,17 +200,17 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   if (!preferences) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <Header title={t('buttons.settings')} onBack={onBack} isRTL={isRTL} />
+        <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
         
         <div className="text-center py-8">
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 mx-4">
-            <p className="text-red-600 font-semibold mb-2">{t.error_title || 'Error'}</p>
+            <p className="text-red-600 font-semibold mb-2">{t('error_title')}</p>
             <p className="text-red-500 text-sm">{error}</p>
             <button
               onClick={loadPreferences}
               className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl transition-colors"
             >
-              {t.retry || 'Retry'}
+              {t('retry')}
             </button>
           </div>
         </div>
@@ -266,66 +222,52 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
     const menuItems = [
       {
         id: 'calculation' as SettingsSection,
-        title: t.settings_calculation || 'Prayer Calculation',
-        titleAr: 'حساب الصلاة',
-        description: t.settings_calculation_desc || 'Calculation method and madhab',
-        descriptionAr: 'طريقة الحساب والمذهب',
+        title: t('calculation'),
+        description: t('calculation_desc'),
         icon: CalculatorIcon,
         badge: SettingsService.getCalculationMethodInfo(preferences.calculationMethod).name
       },
       {
         id: 'notifications' as SettingsSection,
-        title: t.settings_notifications || 'Notifications',
-        titleAr: 'الإشعارات',
-        description: t.settings_notifications_desc || 'Prayer time notifications',
-        descriptionAr: 'إشعارات أوقات الصلاة',
+        title: t('notifications'),
+        description: t('notifications_desc'),
         icon: BellIcon,
-        badge: preferences.notifications.enabled ? t.enabled || 'Enabled' : t.disabled || 'Disabled'
+        badge: preferences.notifications.enabled ? t('enabled') : t('disabled')
       },
       {
         id: 'display' as SettingsSection,
-        title: t.settings_display || 'Display',
-        titleAr: 'العرض',
-        description: t.settings_display_desc || 'Theme and appearance',
-        descriptionAr: 'المظهر والشكل',
+        title: t('display'),
+        description: t('display_desc'),
         icon: EyeIcon,
         badge: preferences.display.theme
       },
       {
         id: 'language' as SettingsSection,
-        title: t.settings_language || 'Language',
-        titleAr: 'اللغة',
-        description: t.settings_language_desc || 'App language',
-        descriptionAr: 'لغة التطبيق',
+        title: t('language'),
+        description: t('language_desc'),
         icon: GlobeIcon,
         badge: preferences.language === 'ar' ? 'العربية' : 'English'
       },
       {
         id: 'privacy' as SettingsSection,
-        title: t.settings_privacy || 'Privacy',
-        titleAr: 'الخصوصية',
-        description: t.settings_privacy_desc || 'Data and privacy settings',
-        descriptionAr: 'إعدادات البيانات والخصوصية',
+        title: t('privacy'),
+        description: t('privacy_desc'),
         icon: ShieldIcon,
-        badge: preferences.privacy.analyticsEnabled ? t.enabled || 'Enabled' : t.disabled || 'Disabled'
+        badge: preferences.privacy.analyticsEnabled ? t('enabled') : t('disabled')
       },
       {
         id: 'refresh' as SettingsSection,
-        title: t.settings_refresh || 'Data Refresh',
-        titleAr: 'تحديث البيانات',
-        description: t.settings_refresh_desc || 'Control when to refresh data',
-        descriptionAr: 'التحكم في تحديث البيانات',
+        title: t('refresh'),
+        description: t('refresh_desc'),
         icon: RefreshIcon,
-        badge: t.settings || 'Settings'
+        badge: t('title')
       },
       {
         id: 'accessibility' as SettingsSection,
-        title: t.settings_accessibility || 'Accessibility',
-        titleAr: 'إمكانية الوصول',
-        description: t.settings_accessibility_desc || 'Accessibility options',
-        descriptionAr: 'خيارات إمكانية الوصول',
+        title: t('accessibility'),
+        description: t('accessibility_desc'),
         icon: HeartIcon,
-        badge: Object.values(preferences.accessibility).some(Boolean) ? t.enabled || 'Enabled' : t.disabled || 'Disabled'
+        badge: Object.values(preferences.accessibility).some(Boolean) ? t('enabled') : t('disabled')
       }
     ];
 
@@ -334,15 +276,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         <div className="space-y-3">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const title = lang === 'ar' ? item.titleAr : item.title;
-            const description = lang === 'ar' ? item.descriptionAr : item.description;
             
             return (
               <button
                 key={item.id}
                 onClick={() => setCurrentSection(item.id)}
                 className="w-full bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow text-left"
-                dir={lang === 'ar' ? 'rtl' : 'ltr'}
+                dir={isRTL ? 'rtl' : 'ltr'}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -350,8 +290,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
                       <Icon className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{title}</h3>
-                      <p className="text-sm text-gray-500">{description}</p>
+                      <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                      <p className="text-sm text-gray-500">{item.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -359,7 +299,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
                       {item.badge}
                     </span>
                     <svg 
-                      className={`w-5 h-5 text-gray-400 ${lang === 'ar' ? 'rotate-180' : ''}`} 
+                      className={`w-5 h-5 text-gray-400 ${isRTL ? 'rotate-180' : ''}`} 
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
@@ -380,7 +320,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             disabled={saving}
             className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-xl transition-colors"
           >
-            {t.export_settings || 'Export Settings'}
+            {t('export_settings')}
           </button>
           
           <button
@@ -388,7 +328,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             disabled={saving}
             className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-xl transition-colors"
           >
-            {saving ? (t.resetting || 'Resetting...') : (t.reset_to_defaults || 'Reset to Defaults')}
+            {saving ? t('resetting') : t('reset_to_defaults')}
           </button>
         </div>
 
@@ -411,14 +351,14 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
               calculationMethod={preferences.calculationMethod}
               onChange={(madhab) => updateTopLevel('madhab', madhab)}
               onCalculationMethodChange={(calculationMethod) => updateTopLevel('calculationMethod', calculationMethod)}
-              lang={lang}
-              t={t}
+              lang={currentLanguage}
+              t={legacyT}
             />
             <CalculationMethodSelector
               value={preferences.calculationMethod}
               onChange={(calculationMethod) => updateTopLevel('calculationMethod', calculationMethod)}
-              lang={lang}
-              t={t}
+              lang={currentLanguage}
+              t={legacyT}
             />
           </div>
         );
@@ -429,7 +369,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             <NotificationSettings
               value={preferences.notifications}
               onChange={(notifications) => updateSection('notifications', notifications)}
-              lang={lang}
+              lang={currentLanguage}
             />
           </div>
         );
@@ -440,7 +380,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             <DisplaySettings
               value={preferences.display}
               onChange={(display) => updateSection('display', display)}
-              lang={lang}
+              lang={currentLanguage}
             />
           </div>
         );
@@ -450,11 +390,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
           <div className="px-4 py-6">
             <LanguageSettings
               value={preferences.language}
-              onChange={(language) => {
-                updateSection('language', language);
-                onLanguageChange(language);
-              }}
-              lang={lang}
+              onChange={(language) => updateSection('language', language)}
+              lang={currentLanguage}
             />
           </div>
         );
@@ -473,14 +410,14 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
 
   const getSectionTitle = () => {
     const titles = {
-      main: t.settings_title || 'Settings',
-      calculation: t.settings_calculation || 'Prayer Calculation',
-      notifications: t.settings_notifications || 'Notifications',
-      display: t.settings_display || 'Display',
-      language: t.settings_language || 'Language',
-      refresh: t.settings_refresh || 'Data Refresh',
-      privacy: t.settings_privacy || 'Privacy',
-      accessibility: t.settings_accessibility || 'Accessibility'
+      main: t('title'),
+      calculation: t('calculation'),
+      notifications: t('notifications'),
+      display: t('display'),
+      language: t('language'),
+      refresh: t('refresh'),
+      privacy: t('privacy'),
+      accessibility: t('accessibility')
     };
 
     return titles[currentSection] || titles.main;
@@ -500,7 +437,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
         <Header 
           title={getSectionTitle()} 
           onBack={handleBack} 
-          isRTL={lang === 'ar'} 
+          isRTL={isRTL} 
         />
         
         <div className="pb-safe">
@@ -512,7 +449,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             <div className="bg-white rounded-xl p-6 mx-4">
               <div className="flex items-center space-x-3 rtl:space-x-reverse">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <p className="text-gray-700">{t.saving || 'Saving...'}</p>
+                <p className="text-gray-700">{t('saving')}</p>
               </div>
             </div>
           </div>

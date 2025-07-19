@@ -1,15 +1,14 @@
 
 import React from 'react';
-import { Language, ResultKey } from '../../types';
+import { ResultKey } from '../../types';
 import { ScaleIcon, BookOpenIcon, ArrowPathIcon } from '../icons/HeroIcons';
 import { Header } from '../Header';
+import { useTranslation } from '../../i18n/I18nProvider';
 
 interface ResultScreenProps {
   resultKey: ResultKey | null;
   onStartOver: () => void;
   onBack: () => void;
-  t: Record<string, string>;
-  lang: Language;
 }
 
 const InfoCard: React.FC<{
@@ -51,27 +50,29 @@ const InfoCard: React.FC<{
     );
 };
 
-const ResultScreen: React.FC<ResultScreenProps> = ({ resultKey, onStartOver, onBack, t, lang }) => {
+const ResultScreen: React.FC<ResultScreenProps> = ({ resultKey, onStartOver, onBack }) => {
+  const { t, isRTL } = useTranslation();
+  
   if (!resultKey) return null;
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <Header title={t.result_title} onBack={onBack} isRTL={lang === 'ar'} />
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 ${isRTL ? 'font-[Tajawal]' : 'font-[Inter]'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      <Header title={t('sahw_assistant:results.title')} onBack={onBack} isRTL={isRTL} />
 
       {/* Content */}
       <div className="max-w-md mx-auto px-4 py-8 space-y-6">
         <InfoCard 
-          title={t[`${resultKey}_title`]}
+          title={t(`sahw_assistant:results.${resultKey}.title`)}
           icon={<ScaleIcon className="w-6 h-6 text-blue-600" />}
-          content={t[`${resultKey}_details`]}
+          content={t(`sahw_assistant:results.${resultKey}.details`)}
           borderColor="border-blue-500"
           bgColor="bg-white"
         />
         
         <InfoCard 
-          title={t.daleel_title}
+          title={t('sahw_assistant:results.daleel_title')}
           icon={<BookOpenIcon className="w-6 h-6 text-green-600" />}
-          content={t[`${resultKey}_daleel`]}
+          content={t(`sahw_assistant:results.${resultKey}.daleel`)}
           borderColor="border-green-500"
           bgColor="bg-white"
         />
@@ -81,7 +82,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ resultKey, onStartOver, onB
           className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           <ArrowPathIcon className="w-5 h-5"/>
-          <span>{t.btn_start_over}</span>
+          <span>{t('common:navigation.start_over')}</span>
         </button>
       </div>
     </div>
