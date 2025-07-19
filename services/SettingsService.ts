@@ -182,125 +182,34 @@ export class SettingsService {
   }
 
   /**
-   * Get calculation method display information
+   * Get calculation method key for translation lookup
    */
-  static getCalculationMethodInfo(method: CalculationMethod): {
-    name: string;
-    nameAr: string;
-    description: string;
-    descriptionAr: string;
-    region: string;
-    regionAr: string;
-  } {
-    const info = {
-      [CalculationMethod.ISNA]: {
-        name: 'Islamic Society of North America',
-        nameAr: 'الجمعية الإسلامية لشمال أمريكا',
-        description: 'Used in North America',
-        descriptionAr: 'مستخدم في أمريكا الشمالية',
-        region: 'North America',
-        regionAr: 'أمريكا الشمالية'
-      },
-      [CalculationMethod.MWL]: {
-        name: 'Muslim World League',
-        nameAr: 'رابطة العالم الإسلامي',
-        description: 'Used in Europe, Far East, parts of US',
-        descriptionAr: 'مستخدم في أوروبا والشرق الأقصى وأجزاء من أمريكا',
-        region: 'Europe & Far East',
-        regionAr: 'أوروبا والشرق الأقصى'
-      },
-      [CalculationMethod.EGYPT]: {
-        name: 'Egyptian General Authority of Survey',
-        nameAr: 'الهيئة العامة المصرية للمساحة',
-        description: 'Used in Africa, Syria, Lebanon, Malaysia',
-        descriptionAr: 'مستخدم في أفريقيا وسوريا ولبنان وماليزيا',
-        region: 'Africa & Middle East',
-        regionAr: 'أفريقيا والشرق الأوسط'
-      },
-      [CalculationMethod.MAKKAH]: {
-        name: 'Umm al-Qura University',
-        nameAr: 'جامعة أم القرى',
-        description: 'Used in Saudi Arabia',
-        descriptionAr: 'مستخدم في المملكة العربية السعودية',
-        region: 'Saudi Arabia',
-        regionAr: 'المملكة العربية السعودية'
-      },
-      [CalculationMethod.KARACHI]: {
-        name: 'University of Islamic Sciences, Karachi',
-        nameAr: 'جامعة العلوم الإسلامية، كراتشي',
-        description: 'Used in Pakistan, Bangladesh, India',
-        descriptionAr: 'مستخدم في باكستان وبنغلاديش والهند',
-        region: 'South Asia',
-        regionAr: 'جنوب آسيا'
-      },
-      [CalculationMethod.TEHRAN]: {
-        name: 'Institute of Geophysics, University of Tehran',
-        nameAr: 'معهد الجيوفيزياء، جامعة طهران',
-        description: 'Used in Iran, some Shia communities',
-        descriptionAr: 'مستخدم في إيران وبعض المجتمعات الشيعية',
-        region: 'Iran',
-        regionAr: 'إيران'
-      },
-      [CalculationMethod.JAFARI]: {
-        name: 'Shia Ithna Ashari (Jafari)',
-        nameAr: 'الشيعة الإثنا عشرية (الجعفرية)',
-        description: 'Used by Shia Muslims',
-        descriptionAr: 'مستخدم من قبل المسلمين الشيعة',
-        region: 'Shia Communities',
-        regionAr: 'المجتمعات الشيعية'
-      }
+  static getCalculationMethodKey(method: CalculationMethod): string {
+    const methodKeys = {
+      [CalculationMethod.ISNA]: 'ISNA',
+      [CalculationMethod.MWL]: 'MWL',
+      [CalculationMethod.EGYPT]: 'EGYPT',
+      [CalculationMethod.MAKKAH]: 'MAKKAH',
+      [CalculationMethod.KARACHI]: 'KARACHI',
+      [CalculationMethod.TEHRAN]: 'TEHRAN',
+      [CalculationMethod.JAFARI]: 'JAFARI'
     };
 
-    return info[method] || info[CalculationMethod.ISNA];
+    return methodKeys[method] || methodKeys[CalculationMethod.ISNA];
   }
 
   /**
-   * Get madhab display information
+   * Get madhab key for translation lookup
    */
-  static getMadhabInfo(madhab: Madhab): {
-    name: string;
-    nameAr: string;
-    description: string;
-    descriptionAr: string;
-    asrCalculation: string;
-    asrCalculationAr: string;
-  } {
-    const info = {
-      [Madhab.HANAFI]: {
-        name: 'Hanafi',
-        nameAr: 'الحنفي',
-        description: 'Asr prayer when shadow equals object height plus original shadow',
-        descriptionAr: 'صلاة العصر عندما يساوي الظل طول الجسم مضافاً إليه الظل الأصلي',
-        asrCalculation: 'Shadow = Object + Original Shadow',
-        asrCalculationAr: 'الظل = الجسم + الظل الأصلي'
-      },
-      [Madhab.SHAFI]: {
-        name: 'Shafi\'i',
-        nameAr: 'الشافعي',
-        description: 'Asr prayer when shadow equals object height',
-        descriptionAr: 'صلاة العصر عندما يساوي الظل طول الجسم',
-        asrCalculation: 'Shadow = Object Height',
-        asrCalculationAr: 'الظل = طول الجسم'
-      },
-      [Madhab.MALIKI]: {
-        name: 'Maliki',
-        nameAr: 'المالكي',
-        description: 'Asr prayer when shadow equals object height',
-        descriptionAr: 'صلاة العصر عندما يساوي الظل طول الجسم',
-        asrCalculation: 'Shadow = Object Height',
-        asrCalculationAr: 'الظل = طول الجسم'
-      },
-      [Madhab.HANBALI]: {
-        name: 'Hanbali',
-        nameAr: 'الحنبلي',
-        description: 'Asr prayer when shadow equals object height',
-        descriptionAr: 'صلاة العصر عندما يساوي الظل طول الجسم',
-        asrCalculation: 'Shadow = Object Height',
-        asrCalculationAr: 'الظل = طول الجسم'
-      }
+  static getMadhabKey(madhab: Madhab): string {
+    const madhabKeys = {
+      [Madhab.HANAFI]: 'HANAFI',
+      [Madhab.SHAFI]: 'SHAFI',
+      [Madhab.MALIKI]: 'MALIKI',
+      [Madhab.HANBALI]: 'HANBALI'
     };
 
-    return info[madhab] || info[Madhab.HANAFI];
+    return madhabKeys[madhab] || madhabKeys[Madhab.HANAFI];
   }
 
   /**

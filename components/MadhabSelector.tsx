@@ -1,12 +1,12 @@
 import React from 'react';
 import { Madhab, Language } from '../types';
 import { SettingsService } from '../services/SettingsService';
+import { useTranslation } from '../i18n/I18nProvider';
 
 interface MadhabSelectorProps {
   value: Madhab;
   onChange: (madhab: Madhab) => void;
   lang: Language;
-  t: Record<string, string>;
   calculationMethod?: any;
   onCalculationMethodChange?: (method: any) => void;
 }
@@ -14,13 +14,13 @@ interface MadhabSelectorProps {
 const MadhabSelector: React.FC<MadhabSelectorProps> = ({ 
   value, 
   onChange, 
-  lang, 
-  t 
+  lang
 }) => {
+  const { t: translate } = useTranslation('settings');
   const madhabs = [Madhab.HANAFI, Madhab.SHAFI, Madhab.MALIKI, Madhab.HANBALI];
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+    <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6 ${lang === 'ar' ? 'text-right' : 'text-left'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         {lang === 'ar' ? 'المذهب الفقهي' : 'Islamic Jurisprudence School (Madhab)'}
       </h3>
@@ -34,34 +34,34 @@ const MadhabSelector: React.FC<MadhabSelectorProps> = ({
 
       <div className="space-y-3">
         {madhabs.map((madhab) => {
-          const info = SettingsService.getMadhabInfo(madhab);
+          const madhabKey = SettingsService.getMadhabKey(madhab);
           const isSelected = value === madhab;
           
           return (
             <button
               key={madhab}
               onClick={() => onChange(madhab)}
-              className={`w-full p-4 rounded-lg border-2 transition-all text-left transform hover:scale-[1.02] ${
+              className={`w-full p-4 rounded-lg border-2 transition-all ${lang === 'ar' ? 'text-right' : 'text-left'} transform hover:scale-[1.02] ${
                 isSelected
                   ? 'border-blue-500 bg-blue-50 shadow-md ring-2 ring-blue-200'
                   : 'border-gray-200 hover:border-blue-300 bg-white hover:shadow-sm'
               }`}
               dir={lang === 'ar' ? 'rtl' : 'ltr'}
             >
-              <div className="flex items-center justify-between">
+              <div className={`flex items-center justify-between ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
                 <div>
                   <h4 className={`font-semibold ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                    {lang === 'ar' ? info.nameAr : info.name}
+                    {translate(`madhabs.${madhabKey}.name`)}
                   </h4>
                   <p className={`text-sm mt-1 ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                    {lang === 'ar' ? info.asrCalculationAr : info.asrCalculation}
+                    {translate(`madhabs.${madhabKey}.asr_calculation`)}
                   </p>
                   <p className={`text-xs mt-2 ${isSelected ? 'text-blue-600' : 'text-gray-500'}`}>
-                    {lang === 'ar' ? info.descriptionAr : info.description}
+                    {translate(`madhabs.${madhabKey}.description`)}
                   </p>
                 </div>
                 
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${lang === 'ar' ? 'ml-4' : 'mr-4'} ${
                   isSelected
                     ? 'border-blue-500 bg-blue-500 scale-110'
                     : 'border-gray-300 bg-white'
@@ -78,7 +78,7 @@ const MadhabSelector: React.FC<MadhabSelectorProps> = ({
         })}
       </div>
 
-      <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+      <div className={`mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg ${lang === 'ar' ? 'text-right' : 'text-left'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         <h4 className="font-semibold text-amber-800 mb-2">
           {lang === 'ar' ? 'معلومة مهمة' : 'Important Information'}
         </h4>
