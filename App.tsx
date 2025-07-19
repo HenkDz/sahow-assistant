@@ -11,6 +11,9 @@ import PrayerTimesScreen from './components/PrayerTimesScreen';
 import QiblaCompass from './components/QiblaCompass';
 import { IslamicCalendarScreen } from './components/IslamicCalendarScreen';
 import TasbihScreen from './components/TasbihScreen';
+import SettingsScreen from './components/SettingsScreen';
+import OfflineIndicator from './components/OfflineIndicator';
+import OfflineErrorBoundary from './components/OfflineErrorBoundary';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('ar');
@@ -65,6 +68,10 @@ export default function App() {
     <div className={`min-h-screen ${lang === 'ar' ? 'font-[Tajawal]' : 'font-[Inter]'}`}>
       {/* Safe area for Android status bar */}
       <div className="fixed top-0 left-0 right-0 h-12 bg-transparent z-40" />
+      
+      {/* Offline Indicator */}
+      <OfflineIndicator className="fixed top-12 left-4 z-50" showDetails={false} />
+      
       <div className="fixed top-16 right-4 z-50">
         {/*<LanguageSwitcher currentLang={lang} setLang={setLang} />*/}
       </div>
@@ -74,19 +81,38 @@ export default function App() {
       )}
 
       {view === 'prayer-times' && (
-        <PrayerTimesScreen lang={lang} onBack={handleBack} t={currentTranslation} />
+        <OfflineErrorBoundary feature="prayer-times">
+          <PrayerTimesScreen lang={lang} onBack={handleBack} t={currentTranslation} />
+        </OfflineErrorBoundary>
       )}
 
       {view === 'qibla' && (
-        <QiblaCompass lang={lang} onBack={handleBack} t={currentTranslation} />
+        <OfflineErrorBoundary feature="qibla">
+          <QiblaCompass lang={lang} onBack={handleBack} t={currentTranslation} />
+        </OfflineErrorBoundary>
       )}
 
       {view === 'calendar' && (
-        <IslamicCalendarScreen language={lang} onBack={handleBack} />
+        <OfflineErrorBoundary feature="calendar">
+          <IslamicCalendarScreen language={lang} onBack={handleBack} />
+        </OfflineErrorBoundary>
       )}
 
       {view === 'tasbih' && (
-        <TasbihScreen lang={lang} onBack={handleBack} t={currentTranslation} />
+        <OfflineErrorBoundary feature="tasbih">
+          <TasbihScreen lang={lang} onBack={handleBack} t={currentTranslation} />
+        </OfflineErrorBoundary>
+      )}
+
+      {view === 'settings' && (
+        <OfflineErrorBoundary feature="settings">
+          <SettingsScreen 
+            lang={lang} 
+            onBack={handleBack} 
+            t={currentTranslation} 
+            onLanguageChange={setLang}
+          />
+        </OfflineErrorBoundary>
       )}
 
       {view === 'welcome' && (

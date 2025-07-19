@@ -1,5 +1,6 @@
 import { Device } from '@capacitor/device';
 import { Location } from '../types';
+import { OfflineStorageService } from './OfflineStorageService';
 
 export interface QiblaResult {
   direction: number; // Qibla direction in degrees (0-360)
@@ -186,6 +187,81 @@ export class QiblaService {
     return Math.abs(compassBearing) <= tolerance || Math.abs(compassBearing - 360) <= tolerance;
   }
 
+  /**
+   * Calculate Qibla direction with offline support
+   */
+  static async calculateQiblaDirectionWithCache(userLocation: Location): Promise<QiblaServiceResult> {
+    try {
+      // First try to get from cache
+      const cached = await OfflineStorageService.getCachedQiblaDirection(userLocation);
+      if (cached) {
+        return {
+          success: true,
+          result: {
+            direction: cached.direction,
+            distance: cached.distance
+          }
+        };
+      }
+
+      // If not in cache, calculate fresh
+      const result = this.calculateQiblaDirection(userLocation);
+      
+      // Cache the result if successful
+      if (result.success && result.result) {
+        await OfflineStorageService.cacheQiblaDirection(
+          userLocation,
+          result.result.direction,
+          result.result.distance
+        );
+      }
+
+      return result;
+    } catch (error) {
+      // Fallback to regular calculation if offline operations fail
+      return this.calculateQiblaDirection(userLocation);
+    }
+  }
+
+  /**
+   * Get cached Qibla direction without recalculating
+   */
+  static async getCachedQiblaDirection(userLocation: Location): Promise<QiblaServiceResult> {
+    try {
+      const cached = await OfflineStorageService.getCachedQiblaDirection(userLocation);
+      if (cached) {
+        return {
+          success: true,
+          result: {
+            direction: cached.direction,
+            distance: cached.distance
+          }
+        };
+      }
+
+      return {
+        success: false,
+        error: 'No cached Qibla direction available for this location'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to retrieve cached Qibla direction: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  /**
+   * Clear cached Qibla direction data
+   */
+  static async clearQiblaCache(): Promise<void> {
+    try {
+      await OfflineStorageService.clearAllCache();
+    } catch (error) {
+      console.error('Error clearing Qibla cache:', error);
+    }
+  }
+
   // Private helper methods
 
   /**
@@ -262,7 +338,7 @@ export class QiblaService {
   /**
    * Handle device orientation change event
    */
-  private handleOrientationChange = (event: DeviceOrientationEvent) => {
+  private handleOrientationChange = (_event: DeviceOrientationEvent) => {
     // This will be bound in startWebOrientationListener
   };
 

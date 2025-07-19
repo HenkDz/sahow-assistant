@@ -108,7 +108,7 @@ export const MainNavigationScreen: React.FC<MainNavigationScreenProps> = ({
       description: t.settingsDesc,
       icon: '⚙️',
       color: 'from-gray-500 to-gray-600',
-      available: false
+      available: true
     }
   ];
 
