@@ -40,6 +40,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
   const [isPointingToQibla, setIsPointingToQibla] = useState(false);
   const [isManualMode, setIsManualMode] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [manualOrientationMode, setManualOrientationMode] = useState<'north-up' | 'qibla-up'>('north-up');
   const compassRef = useRef<HTMLDivElement>(null);
   const needleRef = useRef<HTMLDivElement>(null);
 
@@ -102,12 +103,12 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
           if (orientationStarted) {
             setIsManualMode(false);
           } else {
-            // Don't immediately fall back to manual mode - the error might provide useful info
-            console.warn('Failed to start automatic orientation tracking');
+            // Fall back to manual mode gracefully
+            console.warn('Failed to start automatic orientation tracking - using manual mode');
             setIsManualMode(true);
           }
         } catch (error) {
-          console.warn('Failed to start automatic orientation tracking:', error);
+          console.warn('Failed to start automatic orientation tracking - using manual mode:', error);
           setIsManualMode(true);
         }
       } else {
@@ -137,16 +138,14 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
       // Log the specific error for debugging
       console.warn('Device orientation failed:', result.error);
       
-      // Show error to user if it's permission-related or important
-      if (result.error?.includes('permission') || result.error?.includes('HTTPS') || result.error?.includes('sensor')) {
-        setCompassState(prev => ({
-          ...prev,
-          error: result.error || 'Device orientation not available'
-        }));
-      } else {
-        // For other errors, just fall back to manual mode
-        setIsManualMode(true);
-      }
+      // Always fall back to manual mode instead of showing error screen
+      // This allows users to still use the compass manually
+      setIsManualMode(true);
+      setCompassState(prev => ({
+        ...prev,
+        error: null, // Clear any error state
+        isCalibrated: true // Set as calibrated for manual mode
+      }));
       setShowCalibrationInstructions(false);
     }
   };
@@ -162,8 +161,13 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
 
   const calculateNeedleRotation = (): number => {
     if (isManualMode) {
-      // In manual mode, show static direction from North
-      return compassState.qiblaDirection;
+      // In manual mode, direction depends on orientation mode
+      if (manualOrientationMode === 'qibla-up') {
+        // When compass is rotated to put Qibla at top, needle should just point straight up
+        return 0;
+      } else {
+        return compassState.qiblaDirection; // Show direction from North
+      }
     } else {
       // In automatic mode, adjust for device orientation
       return QiblaService.calculateCompassBearing(
@@ -171,6 +175,14 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
         compassState.deviceOrientation
       );
     }
+  };
+
+  const calculateCompassRotation = (): number => {
+    if (isManualMode && manualOrientationMode === 'qibla-up') {
+      // Rotate the entire compass so Qibla direction is at the top
+      return -compassState.qiblaDirection;
+    }
+    return 0; // No rotation for North-up mode or automatic mode
   };
 
   const formatDistance = (distance: number): string => {
@@ -297,54 +309,82 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
 
         {/* Compass */}
         <div className="relative">
-          <div
-            ref={compassRef}
-            className="relative w-80 h-80 mx-auto bg-white rounded-full shadow-2xl border-4 border-slate-200 overflow-hidden"
-          >
-            {/* Compass Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100">
-              {/* Compass Markings */}
-              <div className="absolute inset-0">
-                {/* Cardinal Directions */}
-                {['N', 'E', 'S', 'W'].map((direction, index) => (
-                  <div
-                    key={direction}
-                    className="absolute text-slate-700 font-bold text-lg"
-                    style={{
-                      top: index === 0 ? '8px' : index === 2 ? 'auto' : '50%',
-                      bottom: index === 2 ? '8px' : 'auto',
-                      left: index === 3 ? '8px' : index === 1 ? 'auto' : '50%',
-                      right: index === 1 ? '8px' : 'auto',
-                      transform: (index === 0 || index === 2) ? 'translateX(-50%)' : 'translateY(-50%)'
-                    }}
-                  >
-                    {direction}
+          {/* Orientation Toggle - only show in manual mode */}
+          {isManualMode && (
+            <div className="absolute top-0 right-0 z-30">
+              <button
+                onClick={() => setManualOrientationMode(prev => prev === 'north-up' ? 'qibla-up' : 'north-up')}
+                className="bg-white rounded-full p-2 shadow-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                title={manualOrientationMode === 'north-up' ? 'Switch to Qibla Up' : 'Switch to North Up'}
+              >
+                {manualOrientationMode === 'north-up' ? (
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    <span className="text-blue-600 font-bold text-sm">N</span>
                   </div>
-                ))}
+                ) : (
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    <span className="text-green-600 text-lg">🕋</span>
+                  </div>
+                )}
+              </button>
+            </div>
+          )}
 
-                {/* Degree Markings */}
-                {Array.from({ length: 36 }, (_, i) => i * 10).map((degree) => (
-                  <div
-                    key={degree}
-                    className="absolute w-0.5 bg-slate-400"
-                    style={{
-                      height: degree % 30 === 0 ? '20px' : '10px',
-                      top: degree % 30 === 0 ? '10px' : '15px',
-                      left: '50%',
-                      transformOrigin: '50% 140px',
-                      transform: `translateX(-50%) rotate(${degree}deg)`
-                    }}
-                  />
-                ))}
+          <div className="relative w-80 h-80 mx-auto">
+            {/* Compass Background - this rotates */}
+            <div
+              ref={compassRef}
+              className="absolute inset-0 bg-white rounded-full shadow-2xl border-4 border-slate-200 overflow-hidden"
+              style={{
+                transform: `rotate(${calculateCompassRotation()}deg)`,
+                transition: 'transform 0.5s ease-out'
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100">
+                {/* Compass Markings */}
+                <div className="absolute inset-0">
+                  {/* Cardinal Directions */}
+                  {['N', 'E', 'S', 'W'].map((direction, index) => (
+                    <div
+                      key={direction}
+                      className="absolute text-slate-700 font-bold text-lg"
+                      style={{
+                        top: index === 0 ? '8px' : index === 2 ? 'auto' : '50%',
+                        bottom: index === 2 ? '8px' : 'auto',
+                        left: index === 3 ? '8px' : index === 1 ? 'auto' : '50%',
+                        right: index === 1 ? '8px' : 'auto',
+                        transform: (index === 0 || index === 2) ? 'translateX(-50%)' : 'translateY(-50%)'
+                      }}
+                    >
+                      {direction}
+                    </div>
+                  ))}
+
+                  {/* Degree Markings */}
+                  {Array.from({ length: 36 }, (_, i) => i * 10).map((degree) => (
+                    <div
+                      key={degree}
+                      className="absolute w-0.5 bg-slate-400"
+                      style={{
+                        height: degree % 30 === 0 ? '20px' : '10px',
+                        top: degree % 30 === 0 ? '10px' : '15px',
+                        left: '50%',
+                        transformOrigin: '50% 140px',
+                        transform: `translateX(-50%) rotate(${degree}deg)`
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Qibla Needle */}
+            {/* Qibla Needle - this stays independent of compass rotation */}
             <div
               ref={needleRef}
-              className="absolute top-1/2 left-1/2 w-1 h-32 origin-bottom transition-transform duration-300 ease-out"
+              className="absolute top-1/2 left-1/2 w-1 h-32 origin-bottom transition-transform duration-300 ease-out z-10"
               style={{
                 transform: `translate(-50%, -100%) rotate(${calculateNeedleRotation()}deg)`,
+                transformOrigin: '50% 100%'
               }}
             >
               {/* Needle */}
@@ -357,11 +397,11 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
             </div>
 
             {/* Center Dot */}
-            <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-slate-800 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10" />
+            <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-slate-800 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20" />
 
             {/* Qibla Indicator */}
             {isPointingToQibla && (
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
                 <div className="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-green-400 opacity-75"></div>
                 <div className="relative inline-flex rounded-full h-8 w-8 bg-green-500 items-center justify-center">
                   <span className="text-white text-xs font-bold">✓</span>
@@ -384,7 +424,9 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
                   : 'text-orange-800'
               }`}>
               {isManualMode
-                ? `Manual Mode - Qibla is ${Math.round(compassState.qiblaDirection)}° from North`
+                ? manualOrientationMode === 'qibla-up'
+                  ? 'Manual Mode - Qibla Direction Up'
+                  : `Manual Mode - Qibla is ${Math.round(compassState.qiblaDirection)}° from North`
                 : isPointingToQibla
                   ? 'Aligned with Qibla'
                   : 'Aligning...'
@@ -392,7 +434,10 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
             </p>
             {isManualMode && (
               <p className="text-blue-600 text-sm mt-1">
-                Device orientation not available. Using manual compass mode.
+                {manualOrientationMode === 'qibla-up' 
+                  ? 'Face the direction of the green needle (top of compass)'
+                  : 'Device orientation not available. Using manual compass mode.'
+                }
               </p>
             )}
           </div>
@@ -456,13 +501,27 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
                   Manual Compass Mode
                 </p>
                 <p className="text-blue-700 text-sm mb-2">
-                  Using manual compass mode. The needle shows the direction to Qibla from North.
+                  {manualOrientationMode === 'qibla-up' 
+                    ? 'Using Qibla-up mode. The compass is oriented with Qibla at the top.'
+                    : 'Using manual compass mode. The needle shows the direction to Qibla from North.'
+                  }
                 </p>
                 <ul className="text-blue-700 text-sm space-y-1">
-                  <li>• Find North using a physical compass or compass app</li>
-                  <li>• Point your device towards North</li>
-                  <li>• The needle shows Qibla direction ({Math.round(compassState.qiblaDirection)}° from North)</li>
-                  <li>• Turn towards the direction indicated by the needle</li>
+                  {manualOrientationMode === 'qibla-up' ? (
+                    <>
+                      <li>• The green needle points straight up (towards Qibla)</li>
+                      <li>• Simply face the direction of the green needle</li>
+                      <li>• Use the compass toggle (🕋/N) to switch orientation modes</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>• Find North using a physical compass or compass app</li>
+                      <li>• Point your device towards North</li>
+                      <li>• The needle shows Qibla direction ({Math.round(compassState.qiblaDirection)}° from North)</li>
+                      <li>• Turn towards the direction indicated by the needle</li>
+                      <li>• Use the compass toggle (🕋/N) to switch orientation modes</li>
+                    </>
+                  )}
                 </ul>
               </div>
             </div>
