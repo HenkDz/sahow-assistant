@@ -4,12 +4,11 @@ import { mosqueService } from '../../services/MosqueService';
 import { locationService } from '../../services/LocationService';
 import { useUserPreferencesStore } from '../../stores/userPreferencesStore';
 import { useTranslation } from '../../i18n/I18nProvider';
-import ManualLocationInput from '../location/ManualLocationInput';
-import LocationPermissionModal from '../location/LocationPermissionModal';
 import OfflineIndicator from '../shared/OfflineIndicator';
 import OfflineErrorBoundary from '../shared/OfflineErrorBoundary';
+import LocationSelector from '../shared/LocationSelector';
 import { Header } from '../shared/Header';
-import { MapPinIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon, ArrowPathIcon } from '../icons/HeroIcons';
+import { MapPinIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from '../icons/HeroIcons';
 
 interface MosqueFinderScreenProps {
   onBack: () => void;
@@ -24,80 +23,27 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchRadius, setSearchRadius] = useState(10);
-  const [showManualLocationInput, setShowManualLocationInput] = useState(false);
-  const [showLocationPermissionModal, setShowLocationPermissionModal] = useState(false);
-  const [locationError, setLocationError] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [locationSuccess, setLocationSuccess] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   useEffect(() => {
-    if (!preferences.location) {
-      handleLocationSetup();
-    } else {
+    if (preferences.location) {
       searchNearbyMosques();
     }
   }, [preferences.location, searchRadius]);
 
-  const handleLocationSetup = async () => {
-    setIsLoading(true);
-    setError(null);
-    setLocationError(null);
-
-    try {
-      const locationResult = await locationService.getCurrentLocation();
-      
-      if (locationResult.success && locationResult.location) {
-        setLocation(locationResult.location);
-      } else {
-        setLocationError(locationResult.error);
-        if (locationResult.error?.code === 1) { // Permission denied
-          setShowLocationPermissionModal(true);
-        } else {
-          setShowManualLocationInput(true);
-        }
-      }
-    } catch (err) {
-      setError(t('locationError'));
-      setShowManualLocationInput(true);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleLocationUpdate = (location: Location) => {
+    // Location updated successfully, trigger mosque search
+    searchNearbyMosques();
   };
 
-  const handleGetCurrentLocation = async () => {
-    setIsLoading(true);
-    setError(null);
-    setLocationError(null);
-    setLocationSuccess(false);
+  const handleLocationLoading = (loading: boolean) => {
+    setLocationLoading(loading);
+  };
 
-    try {
-      const locationResult = await locationService.getCurrentLocation();
-      
-      if (locationResult.success && locationResult.location) {
-        setLocation(locationResult.location);
-        // Show success message briefly
-        setLocationSuccess(true);
-        setTimeout(() => setLocationSuccess(false), 3000); // Hide after 3 seconds
-        setError(null);
-      } else {
-        setLocationError(locationResult.error);
-        
-        // Handle different error types with specific messages
-        if (locationResult.error?.code === 1) { // Permission denied
-          setError(t('locationPermissionDenied'));
-          setShowLocationPermissionModal(true);
-        } else if (locationResult.error?.code === 2) { // Position unavailable
-          setError(t('locationUnavailable'));
-        } else if (locationResult.error?.code === 3) { // Timeout
-          setError(t('locationTimeout'));
-        } else {
-          setError(t('locationError'));
-        }
-      }
-    } catch (err) {
-      setError(t('locationError'));
-    } finally {
-      setIsLoading(false);
+  const handleLocationError = (error: string | null) => {
+    if (error) {
+      setError(error);
     }
   };
 
@@ -153,11 +99,7 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
     }
   };
 
-  const handleManualLocationSet = (location: Location) => {
-    setLocation(location);
-    locationService.setManualLocation(location);
-    setShowManualLocationInput(false);
-  };
+
 
   const formatDistance = (distance?: number) => {
     if (!distance) return '';
@@ -293,114 +235,20 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
           {/* Offline Indicator */}
           <OfflineIndicator onRetry={searchNearbyMosques} />
 
-          {/* Location Info */}
-          {preferences.location ? (
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-100">
-              <div className="flex items-center justify-center gap-2 text-blue-700 mb-3">
-                <MapPinIcon className="w-4 h-4" />
-                <span className="text-sm">
-                  {preferences.location.city}, {preferences.location.country}
-                </span>
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                <button 
-                  onClick={() => setShowManualLocationInput(true)} 
-                  className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200"
-                >
-                  <MapPinIcon className="w-3 h-3" />
-                  {t('common:buttons.change', 'Change')}
-                </button>
-                <button 
-                  onClick={handleGetCurrentLocation}
-                  disabled={isLoading}
-                  className="flex items-center gap-1 text-xs font-semibold text-green-600 hover:bg-green-50 px-3 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ArrowPathIcon className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                  {t('getCurrentLocation')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-100 text-center">
-              <MapPinIcon className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600 mb-4">{t('noLocationSet')}</p>
-              <div className="flex items-center justify-center gap-3">
-                <button 
-                  onClick={handleGetCurrentLocation}
-                  disabled={isLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  {t('getCurrentLocation')}
-                </button>
-                <button 
-                  onClick={() => setShowManualLocationInput(true)} 
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
-                >
-                  <MapPinIcon className="w-4 h-4" />
-                  {t('setManually')}
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Location Selector */}
+          <LocationSelector
+            onLocationUpdate={handleLocationUpdate}
+            onLocationLoading={handleLocationLoading}
+            onLocationError={handleLocationError}
+            autoFetchOnMount={!preferences.location}
+            variant="card"
+            showSuccessMessage={true}
+          />
 
           {/* Filters */}
           {showFilters && renderSearchFilters()}
 
-          {/* Location Update Status */}
-          {isLoading && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
-              <div className="flex items-center justify-center gap-2 text-blue-700">
-                <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                <span className="text-sm">{t('updatingLocation')}</span>
-              </div>
-            </div>
-          )}
 
-          {/* Location Success Message */}
-          {locationSuccess && !isLoading && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
-              <div className="flex items-center justify-center gap-2 text-green-700">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span className="text-sm">{t('locationUpdated')}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Location Error Display */}
-          {error && !isLoading && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-5 h-5 text-red-500 mt-0.5">
-                  <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-red-800 mb-2">{error}</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleGetCurrentLocation}
-                      className="text-xs px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                    >
-                      {t('retry')}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setError(null);
-                        setShowManualLocationInput(true);
-                      }}
-                      className="text-xs px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-                    >
-                      {t('setManually')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Search Bar */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-100">
@@ -455,24 +303,7 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
           {renderMosqueList()}
         </div>
 
-        {/* Modals */}
-        <ManualLocationInput
-          isOpen={showManualLocationInput}
-          onClose={() => setShowManualLocationInput(false)}
-          onLocationSet={handleManualLocationSet}
-          initialLocation={preferences.location}
-        />
 
-        <LocationPermissionModal
-          isOpen={showLocationPermissionModal}
-          onClose={() => setShowLocationPermissionModal(false)}
-          onRetry={handleLocationSetup}
-          onManualInput={() => {
-            setShowLocationPermissionModal(false);
-            setShowManualLocationInput(true);
-          }}
-          error={locationError}
-        />
       </div>
     </OfflineErrorBoundary>
   );

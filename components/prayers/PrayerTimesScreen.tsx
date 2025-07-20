@@ -7,8 +7,7 @@ import { locationService } from '../../services/LocationService';
 import { useOfflinePrayerTimes } from '../../hooks/useOfflineFirst';
 import { useTranslation } from '../../i18n/I18nProvider';
 import PrayerTimeCard from './PrayerTimeCard';
-import ManualLocationInput from '../location/ManualLocationInput';
-import LocationPermissionModal from '../location/LocationPermissionModal';
+import LocationSelector from '../shared/LocationSelector';
 import OfflineIndicator from '../shared/OfflineIndicator';
 import { ArrowLeftIcon, MapPinIcon, CalendarIcon } from '../icons/HeroIcons';
 import { Header } from '../shared/Header';
@@ -31,41 +30,18 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weeklyTimes, setWeeklyTimes] = useState<PrayerTimes[]>([]);
-  const [showManualLocationInput, setShowManualLocationInput] = useState(false);
-  const [showLocationPermissionModal, setShowLocationPermissionModal] = useState(false);
   const [isFromCache, setIsFromCache] = useState(false);
   const { state, executeWithFallback, getFeatureAvailability, getCacheStatusMessage } = useOfflinePrayerTimes();
 
   useEffect(() => {
-    if (!preferences.location) {
-      handleLocationSetup();
-    } else {
+    if (preferences.location) {
       loadPrayerTimes();
     }
   }, [preferences.location, preferences.calculationMethod, preferences.madhab, selectedDate]);
 
-  const handleLocationSetup = async () => {
-    setLoading(true);
-
-    try {
-      const result = await locationService.getCurrentLocation();
-      
-      if (result.success && result.location) {
-        setLocation(result.location);
-      } else if (result.error) {
-        // Show appropriate modal based on error type
-        if (result.error.code === 1) { // Permission denied
-          setShowLocationPermissionModal(true);
-        } else {
-          // For other errors, show manual location input
-          setShowManualLocationInput(true);
-        }
-      }
-    } catch (err) {
-      setShowManualLocationInput(true);
-    } finally {
-      setLoading(false);
-    }
+  const handleLocationUpdate = (location: Location) => {
+    // Location updated successfully, trigger prayer times reload
+    loadPrayerTimes();
   };
 
   const loadPrayerTimes = async () => {
@@ -128,16 +104,7 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
     }
   };
 
-  const handleManualLocationSet = (location: Location) => {
-    setLocation(location);
-    locationService.setManualLocation(location);
-    setShowManualLocationInput(false);
-  };
 
-  const handleLocationPermissionDenied = () => {
-    setShowLocationPermissionModal(false);
-    setShowManualLocationInput(true);
-  };
 
   const formatDate = (date: Date): string => {
     const options: Intl.DateTimeFormatOptions = {
@@ -209,21 +176,13 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
         {/* Offline Indicator */}
         <OfflineIndicator onRetry={handleSyncData} />
 
-        {/* Location Info */}
-        {preferences.location && (
-          <div className="flex items-center justify-center gap-2 text-blue-700 mb-4">
-            <MapPinIcon className="w-4 h-4" />
-            <span className="text-sm">
-              {preferences.location.city}, {preferences.location.country}
-            </span>
-            <button 
-              onClick={() => setShowManualLocationInput(true)} 
-              className="text-xs font-semibold text-blue-600 hover:underline"
-            >
-              ({t('common:buttons.change', 'Change')})
-            </button>
-          </div>
-        )}
+        {/* Location Selector */}
+        <LocationSelector
+          onLocationUpdate={handleLocationUpdate}
+          autoFetchOnMount={!preferences.location}
+          variant="compact"
+          showSuccessMessage={false}
+        />
 
         {/* Date Navigation */}
         <div className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm border border-blue-100">
@@ -301,25 +260,7 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
         </div>
       )}
 
-      {/* Manual Location Input Modal */}
-      <ManualLocationInput
-        isOpen={showManualLocationInput}
-        onClose={() => setShowManualLocationInput(false)}
-        onLocationSet={handleManualLocationSet}
-        initialLocation={preferences.location}
-      />
 
-      {/* Location Permission Modal */}
-      <LocationPermissionModal
-        isOpen={showLocationPermissionModal}
-        onClose={handleLocationPermissionDenied}
-        onRetry={handleLocationSetup}
-        onManualInput={() => {
-          setShowLocationPermissionModal(false);
-          setShowManualLocationInput(true);
-        }}
-        error={null}
-      />
       </div>
     </div>
   );

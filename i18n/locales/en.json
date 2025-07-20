@@ -80,7 +80,8 @@
     },
     "buttons": {
       "manual_location": "Enter Location Manually",
-      "set_location": "Set Location"
+      "set_location": "Set Location",
+      "get_current": "Get Current Location"
     },
     "manual": {
       "title": "Set Your Location",
@@ -107,6 +108,7 @@
     "status": {
       "loading": "Getting location...",
       "not_set": "Location not set",
+      "updated": "Location updated successfully!",
       "gps": "GPS Location",
       "manual": "Manual Location",
       "unknown": "Unknown location",

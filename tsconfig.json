@@ -26,5 +26,6 @@
     "paths": {
       "@/*" :  ["./*"]
     }
-  }
+  },
+  "include": ["src", "components", "App.tsx", "index.tsx", "types.ts", "stores", "services", "hooks", "utils", "i18n", "constants.ts", "vite.config.ts", "vitest.config.ts", ".kiro/specs/enhanced-muslim-features/tasks.md", ".kiro/steering/package-manager.md", "src/vite-env.d.ts"],
 }

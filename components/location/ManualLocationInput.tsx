@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+/// <reference types="@types/google.maps" />
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Location } from '../../types';
 import { useTranslation } from '../../i18n/I18nProvider';
+import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapMouseEvent } from '@vis.gl/react-google-maps';
+import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 
 interface ManualLocationInputProps {
   isOpen: boolean;
@@ -15,32 +19,99 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
   onLocationSet,
   initialLocation
 }) => {
-  // Use our own translation hook with location namespace
   const { t } = useTranslation('location');
-  
-  const [city, setCity] = useState(initialLocation?.city || '');
-  const [country, setCountry] = useState(initialLocation?.country || '');
-  const [latitude, setLatitude] = useState(initialLocation?.latitude?.toString() || '');
-  const [longitude, setLongitude] = useState(initialLocation?.longitude?.toString() || '');
-  const [useCoordinates, setUseCoordinates] = useState(false);
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+
+  const [latitude, setLatitude] = useState(initialLocation?.latitude || 30.0444);
+  const [longitude, setLongitude] = useState(initialLocation?.longitude || 31.2357);
+  const [useCoordinates, setUseCoordinates] = useState(!!(initialLocation?.latitude && initialLocation?.longitude));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const modalContentRef = useRef<HTMLDivElement>(null);
+
+  const {
+    ready,
+    value,
+    suggestions: { status, data },
+    setValue,
+    clearSuggestions,
+  } = usePlacesAutocomplete({
+    requestOptions: {
+      /* Define search scope here */
+    },
+    debounce: 300,
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (initialLocation) {
+      setLatitude(initialLocation.latitude || 30.0444);
+      setLongitude(initialLocation.longitude || 31.2357);
+      setValue(initialLocation.city ? `${initialLocation.city}, ${initialLocation.country}` : '', false);
+    }
+  }, [initialLocation, setValue]);
+
 
   if (!isOpen) return null;
 
+  const handleSelect = ({ description }: { description: string }) => () => {
+    setValue(description, false);
+    clearSuggestions();
+
+    getGeocode({ address: description })
+      .then((results: google.maps.GeocoderResult[]) => {
+        const { lat, lng } = getLatLng(results[0]);
+        setLatitude(lat);
+        setLongitude(lng);
+        setUseCoordinates(true);
+      })
+      .catch((error: any) => {
+        console.log('Error: ', error);
+      });
+  };
+
+  const handleMapClick = (event: MapMouseEvent) => {
+    if (event.detail.latLng) {
+      const { lat, lng } = event.detail.latLng;
+      setLatitude(lat);
+      setLongitude(lng);
+      setUseCoordinates(true);
+
+      getGeocode({ location: { lat, lng } })
+        .then((results: google.maps.GeocoderResult[]) => {
+          if (results[0]) {
+            setValue(results[0].formatted_address, false);
+          }
+        })
+        .catch((error: any) => {
+          console.log('Error: ', error);
+        });
+    }
+  };
+  
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!city.trim()) {
+    if (!value.trim()) {
       newErrors.city = t('validation.city_required');
     }
 
-    if (!country.trim()) {
-      newErrors.country = t('validation.country_required');
-    }
-
     if (useCoordinates) {
-      const lat = parseFloat(latitude);
-      const lng = parseFloat(longitude);
+      const lat = parseFloat(latitude.toString());
+      const lng = parseFloat(longitude.toString());
 
       if (isNaN(lat) || lat < -90 || lat > 90) {
         newErrors.latitude = t('validation.invalid_latitude');
@@ -62,56 +133,59 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
       return;
     }
 
-    const location: Location = {
-      city: city.trim(),
-      country: country.trim(),
-      latitude: useCoordinates ? parseFloat(latitude) : 0,
-      longitude: useCoordinates ? parseFloat(longitude) : 0
-    };
+    // Extract city and country from the full address
+    let city = '';
+    let country = '';
+    const addressParts = value.split(',');
+    if (addressParts.length > 1) {
+      city = addressParts[0].trim();
+      country = addressParts[addressParts.length - 1].trim();
+    } else {
+      city = value;
+    }
 
-    onLocationSet(location);
+    onLocationSet({
+      city,
+      country,
+      latitude,
+      longitude,
+    });
     onClose();
   };
 
   const handleReset = () => {
-    setCity('');
-    setCountry('');
-    setLatitude('');
-    setLongitude('');
-    setUseCoordinates(false);
+    setLatitude(initialLocation?.latitude || 30.0444);
+    setLongitude(initialLocation?.longitude || 31.2357);
+    setUseCoordinates(!!(initialLocation?.latitude && initialLocation?.longitude));
+    setValue(initialLocation?.city ? `${initialLocation.city}, ${initialLocation.country}` : '', false);
     setErrors({});
   };
 
-  // Common Islamic cities for quick selection
-  const commonCities = [
-    { city: 'Mecca', country: 'Saudi Arabia', lat: 21.4225, lng: 39.8262 },
-    { city: 'Medina', country: 'Saudi Arabia', lat: 24.4539, lng: 39.6040 },
-    { city: 'Riyadh', country: 'Saudi Arabia', lat: 24.7136, lng: 46.6753 },
-    { city: 'Cairo', country: 'Egypt', lat: 30.0444, lng: 31.2357 },
-    { city: 'Istanbul', country: 'Turkey', lat: 41.0082, lng: 28.9784 },
-    { city: 'Dubai', country: 'UAE', lat: 25.2048, lng: 55.2708 },
-    { city: 'Kuala Lumpur', country: 'Malaysia', lat: 3.1390, lng: 101.6869 },
-    { city: 'Jakarta', country: 'Indonesia', lat: -6.2088, lng: 106.8456 }
-  ];
+  const renderSuggestions = () => (
+    <div className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-b-lg border z-10">
+      {data.map((suggestion: google.maps.places.AutocompletePrediction) => {
+        const {
+          place_id,
+          structured_formatting: { main_text, secondary_text },
+        } = suggestion;
 
-  const handleQuickSelect = (selectedCity: typeof commonCities[0]) => {
-    setCity(selectedCity.city);
-    setCountry(selectedCity.country);
-    setLatitude(selectedCity.lat.toString());
-    setLongitude(selectedCity.lng.toString());
-    setUseCoordinates(true);
-  };
+        return (
+          <div
+            key={place_id}
+            onClick={handleSelect(suggestion)}
+            className="p-3 hover:bg-gray-100 cursor-pointer"
+          >
+            <strong>{main_text}</strong> <small>{secondary_text}</small>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl">
+      <div ref={modalContentRef} className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">
             {t('manual.title')}
           </h3>
@@ -120,64 +194,39 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
           </p>
         </div>
 
-        {/* Quick Select Cities */}
-        <div className="mb-6">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">
-            {t('manual.quick_select')}
-          </h4>
-          <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-            {commonCities.map((cityData, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => handleQuickSelect(cityData)}
-                className="text-left p-2 text-xs bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors duration-200 border hover:border-blue-200"
-              >
-                <div className="font-medium text-gray-900">{cityData.city}</div>
-                <div className="text-gray-500">{cityData.country}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* City Input */}
-          <div>
+          <div className="relative">
             <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
               {t('labels.city')} *
             </label>
             <input
-              type="text"
               id="city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              disabled={!ready}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.city ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder={t('placeholders.city')}
             />
+            {status === 'OK' && renderSuggestions()}
             {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
           </div>
 
-          {/* Country Input */}
-          <div>
-            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('labels.country')} *
-            </label>
-            <input
-              type="text"
-              id="country"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.country ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={t('placeholders.country')}
-            />
-            {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
+          <div className="h-64 w-full rounded-lg overflow-hidden">
+            <APIProvider apiKey={apiKey}>
+              <Map
+                center={{ lat: latitude, lng: longitude }}
+                zoom={9}
+                onClick={handleMapClick}
+                mapId="sahow-assistant-map"
+              >
+                <AdvancedMarker position={{ lat: latitude, lng: longitude }} />
+              </Map>
+            </APIProvider>
           </div>
-
-          {/* Coordinates Toggle */}
+          
+          {/* Coordinates Toggle & Inputs */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -191,7 +240,6 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
             </label>
           </div>
 
-          {/* Coordinates Inputs */}
           {useCoordinates && (
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -202,7 +250,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
                   type="number"
                   id="latitude"
                   value={latitude}
-                  onChange={(e) => setLatitude(e.target.value)}
+                  onChange={(e) => setLatitude(parseFloat(e.target.value))}
                   step="any"
                   min="-90"
                   max="90"
@@ -221,7 +269,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
                   type="number"
                   id="longitude"
                   value={longitude}
-                  onChange={(e) => setLongitude(e.target.value)}
+                  onChange={(e) => setLongitude(parseFloat(e.target.value))}
                   step="any"
                   min="-180"
                   max="180"
@@ -236,29 +284,24 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
           )}
 
           {/* Action Buttons */}
-          <div className="flex flex-col gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4">
             <button
-              type="submit"
-              className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors duration-200"
+              type="button"
+              onClick={handleReset}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg"
             >
-                {t('buttons.set_location')}
+              {t('common:buttons.reset', 'Reset')}
             </button>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="flex-1 bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
-              >
-                {t('common:buttons.reset')}
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
-              >
-                {t('common:buttons.cancel')}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg"
+            >
+              {t('common:buttons.cancel', 'Cancel')}
+            </button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+              {t('buttons.set_location')}
+            </button>
           </div>
         </form>
       </div>
