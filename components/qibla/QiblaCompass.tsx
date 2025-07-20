@@ -309,9 +309,9 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
 
         {/* Compass */}
         <div className="relative">
-          {/* Orientation Toggle - only show in manual mode */}
-          {isManualMode && (
-            <div className="absolute top-0 right-0 z-30">
+                      {/* Orientation Toggle - only show in manual mode */}
+            {isManualMode && (
+              <div className="absolute top-0 right-0 z-8">
               <button
                               onClick={() => setManualOrientationMode(prev => prev === 'north-up' ? 'qibla-up' : 'north-up')}
               className="bg-white rounded-full p-2 shadow-lg border border-slate-200 hover:bg-slate-50 transition-colors"
@@ -381,7 +381,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
             {/* Qibla Needle - this stays independent of compass rotation */}
             <div
               ref={needleRef}
-              className="absolute top-1/2 left-1/2 w-1 h-32 origin-bottom transition-transform duration-300 ease-out z-10"
+              className="absolute top-1/2 left-1/2 w-1 h-32 origin-bottom transition-transform duration-300 ease-out z-2"
               style={{
                 transform: `translate(-50%, -100%) rotate(${calculateNeedleRotation()}deg)`,
                 transformOrigin: '50% 100%'
@@ -397,11 +397,11 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
             </div>
 
             {/* Center Dot */}
-            <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-slate-800 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20" />
+            <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-slate-800 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-3" />
 
             {/* Qibla Indicator */}
             {isPointingToQibla && (
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-4">
                 <div className="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-green-400 opacity-75"></div>
                 <div className="relative inline-flex rounded-full h-8 w-8 bg-green-500 items-center justify-center">
                   <span className="text-white text-xs font-bold">✓</span>
