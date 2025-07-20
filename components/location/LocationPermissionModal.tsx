@@ -1,5 +1,4 @@
 import React from 'react';
-import type { TFunction } from 'i18next';
 import { LocationError } from '../../services/LocationService';
 import { useTranslation } from '../../i18n/I18nProvider';
 
@@ -9,7 +8,6 @@ interface LocationPermissionModalProps {
   onRetry: () => void;
   onManualInput: () => void;
   error: LocationError | null;
-  t?: TFunction; // Make this optional since we'll use our own
 }
 
 const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
@@ -17,11 +15,10 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
   onClose,
   onRetry,
   onManualInput,
-  error,
-  t: parentT // Rename to avoid conflict
+  error
 }) => {
   // Use our own translation hook with location namespace
-  const { t, i18n } = useTranslation('location');
+  const { t } = useTranslation('location');
   
   if (!isOpen) return null;
 
@@ -60,7 +57,7 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onClose}
               className="w-full bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
             >
-              {i18n.t('common.buttons.cancel')}
+              {t('common:buttons.cancel')}
             </button>
           </div>
         );
@@ -77,13 +74,13 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onRetry}
               className="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-green-700 transition-colors duration-200"
             >
-              {i18n.t('common.buttons.retry')}
+              {t('common:buttons.retry')}
             </button>
             <button
               onClick={onClose}
               className="w-full bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
             >
-              {i18n.t('common.buttons.cancel')}
+              {t('common:buttons.cancel')}
             </button>
           </div>
         );
@@ -94,7 +91,7 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onRetry}
               className="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-green-700 transition-colors duration-200"
             >
-              {i18n.t('common.buttons.retry')}
+              {t('common:buttons.retry')}
             </button>
             <button
               onClick={onManualInput}
@@ -106,7 +103,7 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onClose}
               className="w-full bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
             >
-              {i18n.t('common.buttons.cancel')}
+              {t('common:buttons.cancel')}
             </button>
           </div>
         );
@@ -123,7 +120,7 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onClose}
               className="w-full bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
             >
-              {i18n.t('common.buttons.cancel')}
+              {t('common:buttons.cancel')}
             </button>
           </div>
         );

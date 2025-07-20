@@ -306,7 +306,6 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
         isOpen={showManualLocationInput}
         onClose={() => setShowManualLocationInput(false)}
         onLocationSet={handleManualLocationSet}
-        t={t}
         initialLocation={preferences.location}
       />
 
@@ -320,7 +319,6 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
           setShowManualLocationInput(true);
         }}
         error={null}
-        t={t}
       />
       </div>
     </div>

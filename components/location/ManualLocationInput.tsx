@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Location } from '../../types';
-import type { TFunction } from 'i18next';
 import { useTranslation } from '../../i18n/I18nProvider';
 
 interface ManualLocationInputProps {
   isOpen: boolean;
   onClose: () => void;
   onLocationSet: (location: Location) => void;
-  t?: TFunction; // Make this optional since we'll use our own
   initialLocation?: Location;
 }
 
@@ -15,11 +13,10 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
   isOpen,
   onClose,
   onLocationSet,
-  t: parentT, // Rename to avoid conflict
   initialLocation
 }) => {
   // Use our own translation hook with location namespace
-  const { t, i18n } = useTranslation('location');
+  const { t } = useTranslation('location');
   
   const [city, setCity] = useState(initialLocation?.city || '');
   const [country, setCountry] = useState(initialLocation?.country || '');
@@ -252,14 +249,14 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
                 onClick={handleReset}
                 className="flex-1 bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
               >
-                {i18n.t('common.buttons.reset')}
+                {t('common:buttons.reset')}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="flex-1 bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
               >
-                {i18n.t('common.buttons.cancel')}
+                {t('common:buttons.cancel')}
               </button>
             </div>
           </div>

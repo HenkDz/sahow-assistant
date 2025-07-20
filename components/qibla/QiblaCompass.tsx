@@ -378,7 +378,6 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
         isOpen={showManualLocationInput}
         onClose={() => setShowManualLocationInput(false)}
         onLocationSet={handleManualLocationSet}
-        t={t}
         initialLocation={preferences.location}
       />
 
@@ -391,7 +390,6 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
           setShowManualLocationInput(true);
         }}
         error={locationError}
-        t={t}
       />
     </div>
   );
