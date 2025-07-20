@@ -49,11 +49,17 @@ export class LocationService {
 
       const position: Position = await Geolocation.getCurrentPosition(options);
       
+      // Perform reverse geocoding to get city and country
+      const reverseGeocodingResult = await this.reverseGeocode(
+        position.coords.latitude,
+        position.coords.longitude
+      );
+
       const location: Location = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-        city: 'Unknown', // Will be resolved via reverse geocoding in future
-        country: 'Unknown'
+        city: reverseGeocodingResult.city || 'Unknown',
+        country: reverseGeocodingResult.country || 'Unknown'
       };
 
       this.lastKnownLocation = location;
@@ -226,6 +232,52 @@ export class LocationService {
       return permissions.location === 'granted';
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Reverse geocode coordinates to get city and country
+   */
+  private async reverseGeocode(latitude: number, longitude: number): Promise<{ city: string; country: string }> {
+    try {
+      // Use OpenStreetMap Nominatim API for reverse geocoding (free, no API key required)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'SahowAssistant/1.0' // Required by Nominatim
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.address) {
+        const address = data.address;
+        
+        // Extract city (try multiple possible fields)
+        const city = address.city || 
+                    address.town || 
+                    address.village || 
+                    address.municipality || 
+                    address.county || 
+                    address.state_district ||
+                    'Unknown';
+        
+        // Extract country
+        const country = address.country || 'Unknown';
+        
+        return { city, country };
+      }
+      
+      return { city: 'Unknown', country: 'Unknown' };
+    } catch (error) {
+      console.warn('Reverse geocoding failed:', error);
+      return { city: 'Unknown', country: 'Unknown' };
     }
   }
 
