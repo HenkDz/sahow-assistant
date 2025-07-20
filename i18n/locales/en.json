@@ -134,7 +134,7 @@
   "qibla": {
     "title": "Qibla Direction",
     "loading": "Loading qibla direction...",
-    "direction": "Qibla Direction",
+    "direction": "Qibla is the direction Muslims face during prayer towards the Kaaba in Mecca. Use this compass to find the correct direction.",
     "distance_to_kaaba": "Distance to Kaaba",
     "compass": {
       "calibration": "Compass Calibration",

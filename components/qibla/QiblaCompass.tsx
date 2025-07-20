@@ -25,7 +25,8 @@ interface CompassState {
 }
 
 const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
-  const { t, isRTL } = useTranslation();
+  const { t, isRTL } = useTranslation('qibla');
+  const { t: tCommon } = useTranslation('common');
   const { preferences, setLocation } = useUserPreferencesStore();
   const [compassState, setCompassState] = useState<CompassState>({
     qiblaDirection: 0,
@@ -187,10 +188,10 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-slate-600 font-semibold">
-            {t('qibla.loading')}
+            {t('loading')}
           </p>
           <p className="text-slate-500 text-sm mt-2">
-            {t('qibla.location_required')}
+            {t('location_required')}
           </p>
         </div>
       </div>
@@ -200,24 +201,24 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
   if (compassState.error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <Header title={t('qibla.title')} onBack={onBack} isRTL={isRTL} />
+        <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
 
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="text-center py-8">
             <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
               <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <p className="text-red-600 font-semibold mb-2">
-                {t('common.status.error_title')}
+                {tCommon('status.error_title')}
               </p>
               <p className="text-red-500 text-sm mb-4">{compassState.error}</p>
 
               {/* Calibration Instructions */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                 <h3 className="text-blue-800 font-semibold mb-2">
-                  {t('qibla.compass.calibration')}
+                  {t('compass.calibration')}
                 </h3>
                 <ul className="text-blue-700 text-sm text-left space-y-1">
-                  <li>• {t('qibla.compass.instructions')}</li>
+                  <li>• {t('compass.instructions')}</li>
                 </ul>
               </div>
             </div>
@@ -226,7 +227,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
               onClick={retryInitialization}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors mb-4"
             >
-              {t('common.buttons.retry')}
+              {tCommon('buttons.retry')}
             </button>
           </div>
         </div>
@@ -236,7 +237,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <Header title={t('qibla.title')} onBack={onBack} isRTL={isRTL} />
+      <Header title={t('title')} onBack={onBack} isRTL={isRTL} />
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Location Info */}
@@ -248,7 +249,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
               onClick={() => setShowManualLocationInput(true)}
               className="text-xs font-semibold text-blue-600 hover:underline"
             >
-              ({t('common.buttons.change')})
+              ({tCommon('buttons.change')})
             </button>
           </div>
         )}
@@ -256,7 +257,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
         {/* Distance to Mecca */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
           <p className="text-blue-600 text-sm font-semibold mb-1">
-            {t('qibla.distance_to_kaaba')}
+            {t('distance_to_kaaba')}
           </p>
           <p className="text-blue-800 text-xl font-bold">
             {formatDistance(compassState.distance)}
@@ -444,7 +445,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
               <InformationCircleIcon className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-yellow-800 font-semibold text-sm mb-2">
-                  {t('qibla.compass.calibration')}
+                  {t('compass.calibration')}
                 </p>
                 <button
                   onClick={() => setShowCalibrationInstructions(!showCalibrationInstructions)}
@@ -461,7 +462,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
             {showCalibrationInstructions && (
               <div className="mt-3 pt-3 border-t border-yellow-200">
                 <ul className="text-yellow-700 text-sm space-y-1">
-                  <li>• {t('qibla.compass.instructions')}</li>
+                  <li>• {t('compass.instructions')}</li>
                 </ul>
               </div>
             )}
@@ -471,10 +472,10 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
         {/* Additional Information */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
           <h3 className="font-semibold text-slate-800 mb-2">
-            {t('qibla.title')}
+            {t('title')}
           </h3>
           <p className="text-slate-600 text-sm leading-relaxed">
-            {t('qibla.direction')}
+            {t('direction')}
           </p>
         </div>
       </div>
