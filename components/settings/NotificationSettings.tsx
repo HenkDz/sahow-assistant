@@ -1,6 +1,6 @@
 import React from 'react';
-import { Language } from '../types';
-import { NotificationPreferences } from '../services/SettingsService';
+import { Language } from '../../types';
+import { NotificationPreferences } from '../../services/SettingsService';
 
 interface NotificationSettingsProps {
   value: NotificationPreferences;

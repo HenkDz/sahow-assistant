@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { IslamicCalendarService } from '../services/IslamicCalendarService';
-import { IslamicDate } from '../types';
+import { IslamicCalendarService } from '../../services/IslamicCalendarService';
+import { IslamicDate } from '../../types';
 import { CalendarEventCard } from './CalendarEventCard';
-import { RamadanTimesCard } from './RamadanTimesCard';
-import { Header } from './Header';
-import { useTranslation } from '../i18n/I18nProvider';
+import { RamadanTimesCard } from '../prayers/RamadanTimesCard';
+import { Header } from '../shared/Header';
+import { useTranslation } from '../../i18n/I18nProvider';
 
 interface IslamicCalendarScreenProps {
   onBack: () => void;

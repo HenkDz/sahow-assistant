@@ -1,7 +1,6 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RamadanTimesCard } from '../../../components/RamadanTimesCard';
+import { RamadanTimesCard } from '../../../components/prayers/RamadanTimesCard';
 import { IslamicCalendarService } from '../../../services/IslamicCalendarService';
 import { PrayerTimesService } from '../../../services/PrayerTimesService';
 import { Location, PrayerTimes } from '../../../types';

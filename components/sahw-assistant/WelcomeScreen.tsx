@@ -3,7 +3,7 @@ import React from 'react';
 import { PlusIcon, MinusIcon, QuestionMarkCircleIcon } from '../icons/HeroIcons';
 import { QuestionType } from '../../types';
 import ChoiceButton from './ChoiceButton';
-import { Header } from '../Header';
+import { Header } from '../shared/Header';
 import { useTranslation } from '../../i18n/I18nProvider';
 
 interface WelcomeScreenProps {

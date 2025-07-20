@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import PrayerTimesScreen from '../../../components/PrayerTimesScreen';
-import PrayerTimeCard from '../../../components/PrayerTimeCard';
+import PrayerTimesScreen from '../../../components/prayers/PrayerTimesScreen';
+import PrayerTimeCard from '../../../components/prayers/PrayerTimeCard';
 import { PrayerTimes, Location, CalculationMethod, Madhab } from '../../../types';
 import { PrayerTimesService } from '../../../services/PrayerTimesService';
 

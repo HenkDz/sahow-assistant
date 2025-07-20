@@ -1,7 +1,6 @@
-import React from 'react';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import MosqueFinderScreen from '../../../components/MosqueFinderScreen';
+import MosqueFinderScreen from '../../../components/mosques/MosqueFinderScreen';
 import { Language } from '../../../types';
 
 // Mock the services and stores

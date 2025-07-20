@@ -12,7 +12,51 @@ describe('UserPreferencesStore', () => {
         calculationMethod: CalculationMethod.MWL,
         notificationsEnabled: true,
         notificationOffset: 10,
+        location: undefined,
+        notifications: {
+          enabled: true,
+          fajr: true,
+          dhuhr: true,
+          asr: true,
+          maghrib: true,
+          isha: true,
+          offsetMinutes: 5,
+          sound: 'default',
+          vibration: true
+        },
+        display: {
+          theme: 'auto',
+          fontSize: 'medium',
+          showSeconds: false,
+          show24Hour: false,
+          showHijriDate: true,
+          showQiblaDistance: true
+        },
+        calculation: {
+          calculationMethod: CalculationMethod.MWL,
+          madhab: Madhab.HANAFI,
+          elevationRule: 'none',
+          highLatRule: 'none'
+        },
+        privacy: {
+          analyticsEnabled: true,
+          crashReportingEnabled: true,
+          locationDataSharing: false
+        },
+        accessibility: {
+          highContrast: false,
+          largeText: false,
+          reduceMotion: false,
+          screenReader: false
+        }
       },
+      isInitialized: false,
+      isLoading: false,
+      initializationError: null,
+      lastSyncTime: null,
+      isSyncing: false,
+      syncError: null,
+      _eventListeners: new Set()
     });
   });
 

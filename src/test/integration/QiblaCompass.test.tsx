@@ -1,25 +1,53 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import QiblaCompass from '../../../components/QiblaCompass';
+import QiblaCompass from '../../../components/qibla/QiblaCompass';
 import { Location } from '../../../types';
 
 // Mock the services
+const mockCalculateQiblaDirection = vi.fn();
+const mockCalculateCompassBearing = vi.fn();
+const mockIsPointingTowardsQibla = vi.fn();
+const mockWatchDeviceOrientation = vi.fn();
+const mockStopWatchingOrientation = vi.fn();
+const mockGetCurrentLocation = vi.fn();
+
 vi.mock('../../../services/QiblaService', () => ({
   QiblaService: {
-    calculateQiblaDirection: vi.fn(),
-    calculateCompassBearing: vi.fn(),
-    isPointingTowardsQibla: vi.fn()
+    calculateQiblaDirection: mockCalculateQiblaDirection,
+    calculateCompassBearing: mockCalculateCompassBearing,
+    isPointingTowardsQibla: mockIsPointingTowardsQibla
   },
   qiblaService: {
-    watchDeviceOrientation: vi.fn(),
-    stopWatchingOrientation: vi.fn()
+    watchDeviceOrientation: mockWatchDeviceOrientation,
+    stopWatchingOrientation: mockStopWatchingOrientation
   }
 }));
 
 vi.mock('../../../services/LocationService', () => ({
   locationService: {
-    getCurrentLocation: vi.fn()
+    getCurrentLocation: mockGetCurrentLocation
   }
+}));
+
+// Mock i18n provider
+vi.mock('../../../i18n/I18nProvider', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'title': 'Qibla Compass',
+        'distance_to_kaaba': 'Distance to Mecca',
+        'loading': 'Finding Qibla direction...',
+        'location_required': 'Location required',
+        'direction': 'Pointing towards Qibla ✓',
+        'common:status.error_title': 'Error',
+        'common:buttons.retry': 'Try Again',
+        'compass.calibration': 'Calibration Instructions',
+        'compass.instructions': 'Hold your device flat and level'
+      };
+      return translations[key] || key;
+    },
+    isRTL: false
+  })
 }));
 
 describe('QiblaCompass Integration', () => {
@@ -30,41 +58,22 @@ describe('QiblaCompass Integration', () => {
     country: 'USA'
   };
 
-  const mockTranslations = {
-    qibla_compass: 'Qibla Compass',
-    distance_to_mecca: 'Distance to Mecca',
-    loading_qibla: 'Finding Qibla direction...',
-    error_title: 'Error',
-    retry: 'Try Again',
-    btn_back: 'Back',
-    pointing_to_qibla: 'Pointing towards Qibla ✓',
-    adjust_direction: 'Adjust your direction',
-    compass_needs_calibration: 'Compass needs calibration',
-    show_instructions: 'Show calibration instructions',
-    hide_instructions: 'Hide instructions',
-    qibla_info: 'About Qibla',
-    qibla_description: 'The Qibla is the direction Muslims face during prayer, pointing towards the Kaaba in Mecca, Saudi Arabia.'
-  };
-
   const mockOnBack = vi.fn();
 
   beforeEach(async () => {
     vi.clearAllMocks();
     
     // Mock successful QiblaService responses
-    const { QiblaService } = await import('../../../services/QiblaService');
-    QiblaService.calculateQiblaDirection.mockReturnValue({
+    mockCalculateQiblaDirection.mockReturnValue({
       success: true,
       result: {
         direction: 58.48,
         distance: 10306.31
       }
     });
-    QiblaService.calculateCompassBearing.mockReturnValue(45);
-    QiblaService.isPointingTowardsQibla.mockReturnValue(false);
-
-    const { qiblaService } = await import('../../../services/QiblaService');
-    qiblaService.watchDeviceOrientation.mockResolvedValue(true);
+    mockCalculateCompassBearing.mockReturnValue(45);
+    mockIsPointingTowardsQibla.mockReturnValue(false);
+    mockWatchDeviceOrientation.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -75,8 +84,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );
@@ -86,10 +93,8 @@ describe('QiblaCompass Integration', () => {
   });
 
   it('should render compass after successful initialization', async () => {
-    const { qiblaService } = await import('../../../services/QiblaService');
-    
     // Mock successful orientation watching
-    qiblaService.watchDeviceOrientation.mockImplementation((callback) => {
+    mockWatchDeviceOrientation.mockImplementation((callback: (result: any) => void) => {
       // Simulate successful orientation callback
       setTimeout(() => {
         callback({
@@ -103,8 +108,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );
@@ -121,8 +124,7 @@ describe('QiblaCompass Integration', () => {
   });
 
   it('should handle location service error gracefully', async () => {
-    const { locationService } = await import('../../../services/LocationService');
-    locationService.getCurrentLocation.mockResolvedValue({
+    mockGetCurrentLocation.mockResolvedValue({
       success: false,
       error: {
         code: 1,
@@ -133,8 +135,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         // No userLocation provided to trigger location service call
       />
     );
@@ -148,8 +148,7 @@ describe('QiblaCompass Integration', () => {
   });
 
   it('should handle QiblaService calculation error', async () => {
-    const { QiblaService } = await import('../../../services/QiblaService');
-    QiblaService.calculateQiblaDirection.mockReturnValue({
+    mockCalculateQiblaDirection.mockReturnValue({
       success: false,
       error: 'Invalid location coordinates'
     });
@@ -157,8 +156,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );
@@ -170,14 +167,11 @@ describe('QiblaCompass Integration', () => {
   });
 
   it('should show calibration instructions when orientation is not supported', async () => {
-    const { qiblaService } = await import('../../../services/QiblaService');
-    qiblaService.watchDeviceOrientation.mockResolvedValue(false);
+    mockWatchDeviceOrientation.mockResolvedValue(false);
 
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );
@@ -192,8 +186,7 @@ describe('QiblaCompass Integration', () => {
   });
 
   it('should call onBack when back button is clicked', async () => {
-    const { qiblaService } = await import('../../../services/QiblaService');
-    qiblaService.watchDeviceOrientation.mockImplementation((callback) => {
+    mockWatchDeviceOrientation.mockImplementation((callback: (result: any) => void) => {
       setTimeout(() => {
         callback({
           success: true,
@@ -206,8 +199,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );
@@ -223,10 +214,8 @@ describe('QiblaCompass Integration', () => {
   });
 
   it('should retry initialization when retry button is clicked', async () => {
-    const { QiblaService } = await import('../../../services/QiblaService');
-    
     // First call fails
-    QiblaService.calculateQiblaDirection.mockReturnValueOnce({
+    mockCalculateQiblaDirection.mockReturnValueOnce({
       success: false,
       error: 'Network error'
     });
@@ -234,8 +223,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );
@@ -245,7 +232,7 @@ describe('QiblaCompass Integration', () => {
     });
 
     // Mock successful retry
-    QiblaService.calculateQiblaDirection.mockReturnValue({
+    mockCalculateQiblaDirection.mockReturnValue({
       success: true,
       result: {
         direction: 58.48,
@@ -257,16 +244,14 @@ describe('QiblaCompass Integration', () => {
     fireEvent.click(retryButton);
 
     // Should attempt to initialize again
-    expect(QiblaService.calculateQiblaDirection).toHaveBeenCalledTimes(2);
+    expect(mockCalculateQiblaDirection).toHaveBeenCalledTimes(2);
   });
 
   it('should show pointing indicator when device points to Qibla', async () => {
-    const { QiblaService, qiblaService } = await import('../../../services/QiblaService');
-    
     // Mock pointing towards Qibla
-    QiblaService.isPointingTowardsQibla.mockReturnValue(true);
+    mockIsPointingTowardsQibla.mockReturnValue(true);
     
-    qiblaService.watchDeviceOrientation.mockImplementation((callback) => {
+    mockWatchDeviceOrientation.mockImplementation((callback: (result: any) => void) => {
       setTimeout(() => {
         callback({
           success: true,
@@ -279,8 +264,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );
@@ -291,12 +274,10 @@ describe('QiblaCompass Integration', () => {
   });
 
   it('should show adjustment message when not pointing to Qibla', async () => {
-    const { QiblaService, qiblaService } = await import('../../../services/QiblaService');
-    
     // Mock not pointing towards Qibla
-    QiblaService.isPointingTowardsQibla.mockReturnValue(false);
+    mockIsPointingTowardsQibla.mockReturnValue(false);
     
-    qiblaService.watchDeviceOrientation.mockImplementation((callback) => {
+    mockWatchDeviceOrientation.mockImplementation((callback: (result: any) => void) => {
       setTimeout(() => {
         callback({
           success: true,
@@ -309,8 +290,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );
@@ -321,10 +300,8 @@ describe('QiblaCompass Integration', () => {
   });
 
   it('should toggle calibration instructions', async () => {
-    const { qiblaService } = await import('../../../services/QiblaService');
-    
     // Mock orientation not calibrated
-    qiblaService.watchDeviceOrientation.mockImplementation((callback) => {
+    mockWatchDeviceOrientation.mockImplementation((callback: (result: any) => void) => {
       setTimeout(() => {
         callback({
           success: true,
@@ -337,8 +314,6 @@ describe('QiblaCompass Integration', () => {
     render(
       <QiblaCompass
         onBack={mockOnBack}
-        t={mockTranslations}
-        lang="en"
         userLocation={mockLocation}
       />
     );

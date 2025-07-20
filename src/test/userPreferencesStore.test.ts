@@ -80,7 +80,7 @@ describe('Enhanced User Preferences Store', () => {
 
   describe('Settings Updates', () => {
     it('should update language and sync with storage', async () => {
-      mockSavePreferences.mockResolvedValue();
+      mockSavePreferences.mockResolvedValue(undefined);
       
       const store = useUserPreferencesStore.getState();
       await store.setLanguage('en');
@@ -94,7 +94,7 @@ describe('Enhanced User Preferences Store', () => {
     });
 
     it('should update notification preferences', async () => {
-      mockSavePreferences.mockResolvedValue();
+      mockSavePreferences.mockResolvedValue(undefined);
       
       const store = useUserPreferencesStore.getState();
       await store.updateNotificationPreferences({
@@ -126,7 +126,7 @@ describe('Enhanced User Preferences Store', () => {
 
   describe('Event System', () => {
     it('should notify listeners on settings change', async () => {
-      mockSavePreferences.mockResolvedValue();
+      mockSavePreferences.mockResolvedValue(undefined);
       
       const listener = vi.fn();
       const store = useUserPreferencesStore.getState();
@@ -142,7 +142,7 @@ describe('Enhanced User Preferences Store', () => {
     });
 
     it('should handle listener errors gracefully', async () => {
-      mockSavePreferences.mockResolvedValue();
+      mockSavePreferences.mockResolvedValue(undefined);
       
       const errorListener = vi.fn().mockImplementation(() => {
         throw new Error('Listener error');
@@ -172,7 +172,7 @@ describe('Enhanced User Preferences Store', () => {
     });
 
     it('should reset to defaults', async () => {
-      mockSavePreferences.mockResolvedValue();
+      mockSavePreferences.mockResolvedValue(undefined);
       
       // First change some settings
       const store = useUserPreferencesStore.getState();
@@ -191,7 +191,7 @@ describe('Enhanced User Preferences Store', () => {
 
   describe('Synchronization', () => {
     it('should sync with storage manually', async () => {
-      mockSavePreferences.mockResolvedValue();
+      mockSavePreferences.mockResolvedValue(undefined);
       
       const store = useUserPreferencesStore.getState();
       await store.syncWithStorage();

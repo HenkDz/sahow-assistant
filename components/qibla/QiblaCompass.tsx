@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Location } from '../types';
-import { QiblaService, DeviceOrientationResult } from '../services/QiblaService';
-import { qiblaService } from '../services/QiblaService';
-import { locationService } from '../services/LocationService';
-import { useTranslation } from '../i18n/I18nProvider';
-import { MapPinIcon, ExclamationTriangleIcon, InformationCircleIcon } from './icons/HeroIcons';
-import { Header } from './Header';
+import { Location } from '../../types';
+import { QiblaService, DeviceOrientationResult } from '../../services/QiblaService';
+import { qiblaService } from '../../services/QiblaService';
+import { locationService } from '../../services/LocationService';
+import { useTranslation } from '../../i18n/I18nProvider';
+import { MapPinIcon, ExclamationTriangleIcon, InformationCircleIcon } from '../icons/HeroIcons';
+import { Header } from '../shared/Header';
+import { useUserPreferencesStore } from '../../stores/userPreferencesStore';
+import ManualLocationInput from '../location/ManualLocationInput';
+import LocationPermissionModal from '../location/LocationPermissionModal';
 
 interface QiblaCompassProps {
   onBack: () => void;
-  userLocation?: Location;
 }
 
 interface CompassState {
@@ -22,8 +24,9 @@ interface CompassState {
   locationName: string;
 }
 
-const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => {
+const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
   const { t, isRTL } = useTranslation('qibla');
+  const { preferences, setLocation } = useUserPreferencesStore();
   const [compassState, setCompassState] = useState<CompassState>({
     qiblaDirection: 0,
     deviceOrientation: 0,
@@ -34,7 +37,10 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
     locationName: ''
   });
 
+  const [showManualLocationInput, setShowManualLocationInput] = useState(false);
+  const [showLocationPermissionModal, setShowLocationPermissionModal] = useState(false);
   const [showCalibrationInstructions, setShowCalibrationInstructions] = useState(false);
+  const [locationError, setLocationError] = useState<any>(null);
   const [isPointingToQibla, setIsPointingToQibla] = useState(false);
   const compassRef = useRef<HTMLDivElement>(null);
   const needleRef = useRef<HTMLDivElement>(null);
@@ -44,7 +50,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
     return () => {
       qiblaService.stopWatchingOrientation();
     };
-  }, [userLocation]);
+  }, [preferences.location]);
 
   useEffect(() => {
     // Check if device is pointing towards Qibla
@@ -58,16 +64,24 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
 
   const initializeCompass = async () => {
     setCompassState(prev => ({ ...prev, isLoading: true, error: null }));
+    setLocationError(null);
 
     try {
-      // Get user location if not provided
-      let location = userLocation;
+      let location = preferences.location;
       if (!location) {
         const locationResult = await locationService.getCurrentLocation();
-        if (!locationResult.success || !locationResult.location) {
+        if (locationResult.success && locationResult.location) {
+          setLocation(locationResult.location);
+          location = locationResult.location;
+        } else {
+          setLocationError(locationResult.error);
+          if (locationResult.error?.code === 1) { // Permission denied
+            setShowLocationPermissionModal(true);
+          } else {
+            setShowManualLocationInput(true);
+          }
           throw new Error(locationResult.error?.message || 'Unable to get location');
         }
-        location = locationResult.location;
       }
 
       // Calculate Qibla direction
@@ -86,7 +100,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
         locationName: `${location!.city}, ${location!.country}`,
         isLoading: false,
         isCalibrated: orientationStarted,
-        error: orientationStarted ? null : 'Device orientation not supported'
+        error: orientationStarted ? null : t('compass.not_supported')
       }));
 
       if (!orientationStarted) {
@@ -119,6 +133,12 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
       }));
       setShowCalibrationInstructions(true);
     }
+  };
+
+  const handleManualLocationSet = (location: Location) => {
+    setLocation(location);
+    locationService.setManualLocation(location);
+    setShowManualLocationInput(false);
   };
 
   const calculateNeedleRotation = (): number => {
@@ -165,7 +185,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
             <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
               <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <p className="text-red-600 font-semibold mb-2">
-                {t('common:status.error_title')}
+                {t('common.status.error_title')}
               </p>
               <p className="text-red-500 text-sm mb-4">{compassState.error}</p>
               
@@ -184,7 +204,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
               onClick={retryInitialization}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors mb-4"
             >
-              {t('common:buttons.retry')}
+              {t('common.buttons.retry')}
             </button>
           </div>
         </div>
@@ -198,10 +218,18 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
       
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Location Info */}
-        <div className="flex items-center justify-center gap-2 text-blue-700 mb-4">
-          <MapPinIcon className="w-4 h-4" />
-          <span className="text-sm">{compassState.locationName}</span>
-        </div>
+        {compassState.locationName && (
+          <div className="flex items-center justify-center gap-2 text-blue-700 mb-4">
+            <MapPinIcon className="w-4 h-4" />
+            <span className="text-sm">{compassState.locationName}</span>
+            <button 
+              onClick={() => setShowManualLocationInput(true)} 
+              className="text-xs font-semibold text-blue-600 hover:underline"
+            >
+              ({t('common.buttons.change')})
+            </button>
+          </div>
+        )}
 
         {/* Distance to Mecca */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
@@ -299,16 +327,8 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
           <p className={`font-semibold ${
             isPointingToQibla ? 'text-green-800' : 'text-orange-800'
           }`}>
-            {isPointingToQibla 
-              ? `${t('direction')} ✓`
-              : t('direction')
-            }
+            {isPointingToQibla ? 'Aligned with Qibla' : 'Aligning...'}
           </p>
-          {!isPointingToQibla && (
-            <p className="text-orange-600 text-sm mt-1">
-              {t('direction')}
-            </p>
-          )}
         </div>
       </div>
 
@@ -353,6 +373,26 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack, userLocation }) => 
         </p>
       </div>
       </div>
+
+      <ManualLocationInput
+        isOpen={showManualLocationInput}
+        onClose={() => setShowManualLocationInput(false)}
+        onLocationSet={handleManualLocationSet}
+        t={t}
+        initialLocation={preferences.location}
+      />
+
+      <LocationPermissionModal
+        isOpen={showLocationPermissionModal}
+        onClose={() => setShowLocationPermissionModal(false)}
+        onRetry={initializeCompass}
+        onManualInput={() => {
+          setShowLocationPermissionModal(false);
+          setShowManualLocationInput(true);
+        }}
+        error={locationError}
+        t={t}
+      />
     </div>
   );
 };

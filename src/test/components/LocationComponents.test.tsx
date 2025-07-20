@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
-import LocationPermissionModal from '../../../components/LocationPermissionModal';
-import ManualLocationInput from '../../../components/ManualLocationInput';
-import LocationStatusIndicator from '../../../components/LocationStatusIndicator';
+import LocationPermissionModal from '../../../components/location/LocationPermissionModal';
+import ManualLocationInput from '../../../components/location/ManualLocationInput';
+import LocationStatusIndicator from '../../../components/location/LocationStatusIndicator';
 
 // Mock translations for testing - these should match the i18n keys
 const mockTranslations = {

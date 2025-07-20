@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { OfflineStorageService } from '../services/OfflineStorageService';
-import { useSmartRefresh } from '../hooks/useSmartRefresh';
+import { OfflineStorageService } from '../../services/OfflineStorageService';
+import { useSmartRefresh } from '../../hooks/useSmartRefresh';
 
 interface OfflineIndicatorProps {
   className?: string;

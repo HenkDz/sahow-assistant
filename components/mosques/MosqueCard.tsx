@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Language, Mosque } from '../types';
+import { Language, Mosque } from '../../types';
 import { 
   MapPinIcon, 
   PhoneIcon, 
@@ -10,7 +10,7 @@ import {
   DirectionsIcon,
   ClockIcon,
   CalendarDaysIcon
-} from './icons/HeroIcons';
+} from '../icons/HeroIcons';
 
 interface MosqueCardProps {
   mosque: Mosque;
@@ -26,7 +26,7 @@ const MosqueCard: React.FC<MosqueCardProps> = ({
   mosque, 
   t, 
   lang, 
-  onSelect, 
+  // onSelect, // Unused prop commented out
   onGetDirections, 
   formatDistance,
   showDetails = false 

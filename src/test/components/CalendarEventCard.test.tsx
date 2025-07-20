@@ -1,7 +1,15 @@
-import React from 'react';
 import { render } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { CalendarEventCard } from '../../../components/CalendarEventCard';
+import { describe, it, expect, vi } from 'vitest';
+import { CalendarEventCard } from '../../../components/calendar/CalendarEventCard';
+
+// Mock the i18n provider
+vi.mock('../../../i18n/I18nProvider', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    isRTL: false,
+    currentLanguage: 'en'
+  })
+}));
 
 describe('CalendarEventCard', () => {
   const mockEvent = {
@@ -16,7 +24,6 @@ describe('CalendarEventCard', () => {
     const { container } = render(
       <CalendarEventCard
         event={mockEvent}
-        language="en"
       />
     );
 
@@ -29,7 +36,6 @@ describe('CalendarEventCard', () => {
     const { container } = render(
       <CalendarEventCard
         event={mockEvent}
-        language="ar"
       />
     );
 
@@ -47,7 +53,6 @@ describe('CalendarEventCard', () => {
     const { container } = render(
       <CalendarEventCard
         event={observanceEvent}
-        language="en"
       />
     );
 
@@ -64,7 +69,6 @@ describe('CalendarEventCard', () => {
     const { container } = render(
       <CalendarEventCard
         event={eventWithoutDescription}
-        language="en"
       />
     );
 

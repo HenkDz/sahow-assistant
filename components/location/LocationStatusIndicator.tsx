@@ -1,5 +1,5 @@
 import React from 'react';
-import { Location } from '../types';
+import { Location } from '../../types';
 
 interface LocationStatusIndicatorProps {
   location: Location | null;

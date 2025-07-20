@@ -1,7 +1,7 @@
 import React from 'react';
-import { CalculationMethod, Language } from '../types';
-import { SettingsService } from '../services/SettingsService';
-import { useTranslation } from '../i18n/I18nProvider';
+import { CalculationMethod, Language } from '../../types';
+import { SettingsService } from '../../services/SettingsService';
+import { useTranslation } from '../../i18n/I18nProvider';
 
 interface CalculationMethodSelectorProps {
   value: CalculationMethod;

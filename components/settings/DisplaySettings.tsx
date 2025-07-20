@@ -1,6 +1,6 @@
 import React from 'react';
-import { Language } from '../types';
-import { DisplayPreferences } from '../services/SettingsService';
+import { Language } from '../../types';
+import { DisplayPreferences } from '../../services/SettingsService';
 
 interface DisplaySettingsProps {
   value: DisplayPreferences;

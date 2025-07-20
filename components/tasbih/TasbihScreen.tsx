@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { TasbihService, TasbihData, DhikrOption, DEFAULT_DHIKR_OPTIONS } from '../services/TasbihService';
-import { useTranslation } from '../i18n/I18nProvider';
-import { ArrowPathIcon, Cog6ToothIcon, CheckIcon } from './icons/HeroIcons';
-import { Header } from './Header';
+import { TasbihService, TasbihData, DhikrOption, DEFAULT_DHIKR_OPTIONS } from '../../services/TasbihService';
+import { useTranslation } from '../../i18n/I18nProvider';
+import { ArrowPathIcon, Cog6ToothIcon, CheckIcon } from '../icons/HeroIcons';
+import { Header } from '../shared/Header';
 
 interface TasbihScreenProps {
   onBack: () => void;

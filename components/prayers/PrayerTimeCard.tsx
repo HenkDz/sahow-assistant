@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { PrayerTimes } from '../types';
-import { PrayerTimesService } from '../services/PrayerTimesService';
-import { useTranslation } from '../i18n/I18nProvider';
-import { ClockIcon, SunIcon, MoonIcon } from './icons/HeroIcons';
+import { PrayerTimes } from '../../types';
+import { PrayerTimesService } from '../../services/PrayerTimesService';
+import { useTranslation } from '../../i18n/I18nProvider';
+import { ClockIcon, SunIcon, MoonIcon } from '../icons/HeroIcons';
 
 interface PrayerTimeCardProps {
   prayerTimes: PrayerTimes;

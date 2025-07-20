@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useTranslation as useI18nextTranslation, I18nextProvider } from 'react-i18next';
-import i18n, { Language, supportedLanguages, isRTL, changeLanguage, setSettingsStoreReference, initializeWithSettingsLanguage } from './index';
+import i18n, { Language, supportedLanguages, isRTL, changeLanguage } from './index';
 
 // Context for language management
 interface I18nContextType {

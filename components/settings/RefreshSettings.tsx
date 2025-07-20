@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { OfflineStorageService } from '../services/OfflineStorageService';
+import { OfflineStorageService } from '../../services/OfflineStorageService';
 
 interface RefreshSettingsProps {
   onClose?: () => void;

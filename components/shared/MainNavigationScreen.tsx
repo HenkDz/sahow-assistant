@@ -1,6 +1,6 @@
 import React from 'react';
-import { View } from '../types';
-import { useTranslation } from '../i18n/I18nProvider';
+import { View } from '../../types';
+import { useTranslation } from '../../i18n/I18nProvider';
 
 interface MainNavigationScreenProps {
   onNavigate: (view: View) => void;

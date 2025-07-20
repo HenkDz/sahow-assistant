@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Mosque, Location } from '../types';
-import { mosqueService } from '../services/MosqueService';
-import { useUserPreferencesStore } from '../stores/userPreferencesStore';
-import { useOfflineStatus } from '../hooks/useOfflineStatus';
-import { useTranslation } from '../i18n/I18nProvider';
-// import MosqueCard from './MosqueCard';
-// import ManualLocationInput from './ManualLocationInput';
-// import LocationPermissionModal from './LocationPermissionModal';
-import OfflineIndicator from './OfflineIndicator';
-import OfflineErrorBoundary from './OfflineErrorBoundary';
-import { ArrowLeftIcon, MapPinIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from './icons/HeroIcons';
+import { Mosque, Location } from '../../types';
+import { mosqueService } from '../../services/MosqueService';
+import { locationService } from '../../services/LocationService';
+import { useUserPreferencesStore } from '../../stores/userPreferencesStore';
+import { useOfflineStatus } from '../../hooks/useOfflineStatus';
+import { useTranslation } from '../../i18n/I18nProvider';
+import ManualLocationInput from '../location/ManualLocationInput';
+import LocationPermissionModal from '../location/LocationPermissionModal';
+import OfflineIndicator from '../shared/OfflineIndicator';
+import OfflineErrorBoundary from '../shared/OfflineErrorBoundary';
+import { ArrowLeftIcon, MapPinIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from '../icons/HeroIcons';
 
 interface MosqueFinderScreenProps {
   onBack: () => void;
@@ -25,8 +25,9 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchRadius, setSearchRadius] = useState(10);
-  // const [showManualLocationInput, setShowManualLocationInput] = useState(false);
-  // const [showLocationPermissionModal, setShowLocationPermissionModal] = useState(false);
+  const [showManualLocationInput, setShowManualLocationInput] = useState(false);
+  const [showLocationPermissionModal, setShowLocationPermissionModal] = useState(false);
+  const [locationError, setLocationError] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -40,20 +41,24 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
   const handleLocationSetup = async () => {
     setIsLoading(true);
     setError(null);
+    setLocationError(null);
 
     try {
-      const userLocation = await mosqueService.getCurrentLocationForSearch();
+      const locationResult = await locationService.getCurrentLocation();
       
-      if (userLocation) {
-        setLocation(userLocation);
+      if (locationResult.success && locationResult.location) {
+        setLocation(locationResult.location);
       } else {
-        // setShowLocationPermissionModal(true);
-        console.log('Location permission needed');
+        setLocationError(locationResult.error);
+        if (locationResult.error?.code === 1) { // Permission denied
+          setShowLocationPermissionModal(true);
+        } else {
+          setShowManualLocationInput(true);
+        }
       }
     } catch (err) {
       setError(t('locationError'));
-      // setShowManualLocationInput(true);
-      console.log('Manual location input needed');
+      setShowManualLocationInput(true);
     } finally {
       setIsLoading(false);
     }
@@ -111,26 +116,11 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
     }
   };
 
-  // TODO: Restore when modal components are updated
-  /*const handleLocationPermissionGranted = (location: Location) => {
-    setLocation(location);
-    setShowLocationPermissionModal(false);
-  };
-
   const handleManualLocationSet = (location: Location) => {
     setLocation(location);
+    locationService.setManualLocation(location);
     setShowManualLocationInput(false);
-  };*/
-
-  // TODO: Re-enable when components are updated
-  /*const handleMosqueSelect = async (mosque: Mosque) => {
-    // Just handle the mosque selection without setting state
-    console.log('Selected mosque:', mosque);
   };
-
-  const handleGetDirections = (mosque: Mosque) => {
-    mosqueService.openMapsForNavigation(mosque);
-  };*/
 
   const formatDistance = (distance?: number) => {
     if (!distance) return '';
@@ -309,7 +299,7 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
                   {preferences.location.city}, {preferences.location.country}
                 </span>
                 <button
-                  onClick={() => console.log('Change location clicked')}
+                  onClick={() => setShowManualLocationInput(true)}
                   className="ml-auto text-sm text-blue-600 hover:text-blue-800"
                 >
                   {t('change')}
@@ -326,24 +316,25 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
         </div>
 
         {/* Modals */}
-        {/* TODO: Update these components to use i18n */}
-        {/*showLocationPermissionModal && (
-          <LocationPermissionModal
-            onLocationGranted={handleLocationPermissionGranted}
-            onManualInput={() => {
-              setShowLocationPermissionModal(false);
-              setShowManualLocationInput(true);
-            }}
-            onClose={() => setShowLocationPermissionModal(false)}
-          />
-        )*/}
+        <ManualLocationInput
+          isOpen={showManualLocationInput}
+          onClose={() => setShowManualLocationInput(false)}
+          onLocationSet={handleManualLocationSet}
+          t={t}
+          initialLocation={preferences.location}
+        />
 
-        {/*showManualLocationInput && (
-          <ManualLocationInput
-            onLocationSet={handleManualLocationSet}
-            onClose={() => setShowManualLocationInput(false)}
-          />
-        )*/}
+        <LocationPermissionModal
+          isOpen={showLocationPermissionModal}
+          onClose={() => setShowLocationPermissionModal(false)}
+          onRetry={handleLocationSetup}
+          onManualInput={() => {
+            setShowLocationPermissionModal(false);
+            setShowManualLocationInput(true);
+          }}
+          error={locationError}
+          t={t}
+        />
       </div>
     </OfflineErrorBoundary>
   );

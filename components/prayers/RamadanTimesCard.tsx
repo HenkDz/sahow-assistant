@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Location } from '../types';
-import { IslamicCalendarService } from '../services/IslamicCalendarService';
-import { PrayerTimesService } from '../services/PrayerTimesService';
-import { useTranslation } from '../i18n/I18nProvider';
+import { Location } from '../../types';
+import { IslamicCalendarService } from '../../services/IslamicCalendarService';
+import { PrayerTimesService } from '../../services/PrayerTimesService';
+import { useTranslation } from '../../i18n/I18nProvider';
 
 interface RamadanTimesCardProps {
   date: Date;

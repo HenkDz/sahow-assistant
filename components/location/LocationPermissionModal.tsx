@@ -1,5 +1,7 @@
 import React from 'react';
-import { LocationError } from '../services/LocationService';
+import type { TFunction } from 'i18next';
+import { LocationError } from '../../services/LocationService';
+import { useTranslation } from '../../i18n/I18nProvider';
 
 interface LocationPermissionModalProps {
   isOpen: boolean;
@@ -7,7 +9,7 @@ interface LocationPermissionModalProps {
   onRetry: () => void;
   onManualInput: () => void;
   error: LocationError | null;
-  t: Record<string, string>;
+  t?: TFunction; // Make this optional since we'll use our own
 }
 
 const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
@@ -16,27 +18,29 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
   onRetry,
   onManualInput,
   error,
-  t
+  t: parentT // Rename to avoid conflict
 }) => {
+  // Use our own translation hook with location namespace
+  const { t, i18n } = useTranslation('location');
+  
   if (!isOpen) return null;
 
   const getErrorTitle = () => {
-    if (!error) return t.location_error || 'Location Error';
-    
+    if (!error) return t('errors.generic');
     switch (error.code) {
       case 1:
-        return t.location_permission_denied || 'Location Permission Denied';
+        return t('errors.permission_denied');
       case 2:
-        return t.location_unavailable || 'Location Unavailable';
+        return t('errors.unavailable');
       case 3:
-        return t.location_timeout || 'Location Request Timeout';
+        return t('errors.timeout');
       default:
-        return t.location_error || 'Location Error';
+        return t('errors.generic');
     }
   };
 
   const getErrorMessage = () => {
-    return error?.message || t.location_error_generic || 'An error occurred while getting your location.';
+    return error?.message || t('errors.generic');
   };
 
   const getActionButtons = () => {
@@ -50,13 +54,13 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onManualInput}
               className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors duration-200"
             >
-              {t.btn_manual_location || 'Enter Location Manually'}
+              {t('buttons.manual_location')}
             </button>
             <button
               onClick={onClose}
               className="w-full bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
             >
-              {t.btn_cancel || 'Cancel'}
+              {i18n.t('common.buttons.cancel')}
             </button>
           </div>
         );
@@ -67,19 +71,19 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onManualInput}
               className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors duration-200"
             >
-              {t.btn_manual_location || 'Enter Location Manually'}
+              {t('buttons.manual_location')}
             </button>
             <button
               onClick={onRetry}
               className="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-green-700 transition-colors duration-200"
             >
-              {t.btn_retry || 'Try Again'}
+              {i18n.t('common.buttons.retry')}
             </button>
             <button
               onClick={onClose}
               className="w-full bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
             >
-              {t.btn_cancel || 'Cancel'}
+              {i18n.t('common.buttons.cancel')}
             </button>
           </div>
         );
@@ -90,19 +94,19 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onRetry}
               className="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-green-700 transition-colors duration-200"
             >
-              {t.btn_retry || 'Try Again'}
+              {i18n.t('common.buttons.retry')}
             </button>
             <button
               onClick={onManualInput}
               className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors duration-200"
             >
-              {t.btn_manual_location || 'Enter Location Manually'}
+              {t('buttons.manual_location')}
             </button>
             <button
               onClick={onClose}
               className="w-full bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
             >
-              {t.btn_cancel || 'Cancel'}
+              {i18n.t('common.buttons.cancel')}
             </button>
           </div>
         );
@@ -113,13 +117,13 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
               onClick={onManualInput}
               className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors duration-200"
             >
-              {t.btn_manual_location || 'Enter Location Manually'}
+              {t('buttons.manual_location')}
             </button>
             <button
               onClick={onClose}
               className="w-full bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
             >
-              {t.btn_cancel || 'Cancel'}
+              {i18n.t('common.buttons.cancel')}
             </button>
           </div>
         );
@@ -147,7 +151,7 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
         {error?.code === 1 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-blue-800 text-sm">
-              {t.location_permission_help || 'To enable location services, go to your device settings and allow location access for this app.'}
+              {t('errors.permission_help')}
             </p>
           </div>
         )}

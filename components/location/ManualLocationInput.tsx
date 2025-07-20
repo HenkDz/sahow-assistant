@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Location } from '../types';
+import { Location } from '../../types';
+import type { TFunction } from 'i18next';
+import { useTranslation } from '../../i18n/I18nProvider';
 
 interface ManualLocationInputProps {
   isOpen: boolean;
   onClose: () => void;
   onLocationSet: (location: Location) => void;
-  t: Record<string, string>;
+  t?: TFunction; // Make this optional since we'll use our own
   initialLocation?: Location;
 }
 
@@ -13,9 +15,12 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
   isOpen,
   onClose,
   onLocationSet,
-  t,
+  t: parentT, // Rename to avoid conflict
   initialLocation
 }) => {
+  // Use our own translation hook with location namespace
+  const { t, i18n } = useTranslation('location');
+  
   const [city, setCity] = useState(initialLocation?.city || '');
   const [country, setCountry] = useState(initialLocation?.country || '');
   const [latitude, setLatitude] = useState(initialLocation?.latitude?.toString() || '');
@@ -29,11 +34,11 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!city.trim()) {
-      newErrors.city = t.error_city_required || 'City is required';
+      newErrors.city = t('validation.city_required');
     }
 
     if (!country.trim()) {
-      newErrors.country = t.error_country_required || 'Country is required';
+      newErrors.country = t('validation.country_required');
     }
 
     if (useCoordinates) {
@@ -41,11 +46,11 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
       const lng = parseFloat(longitude);
 
       if (isNaN(lat) || lat < -90 || lat > 90) {
-        newErrors.latitude = t.error_invalid_latitude || 'Latitude must be between -90 and 90';
+        newErrors.latitude = t('validation.invalid_latitude');
       }
 
       if (isNaN(lng) || lng < -180 || lng > 180) {
-        newErrors.longitude = t.error_invalid_longitude || 'Longitude must be between -180 and 180';
+        newErrors.longitude = t('validation.invalid_longitude');
       }
     }
 
@@ -111,17 +116,17 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
             </svg>
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">
-            {t.manual_location_title || 'Set Your Location'}
+            {t('manual.title')}
           </h3>
           <p className="text-gray-600 text-sm">
-            {t.manual_location_desc || 'Enter your city and country to get accurate prayer times.'}
+            {t('manual.description')}
           </p>
         </div>
 
         {/* Quick Select Cities */}
         <div className="mb-6">
           <h4 className="text-sm font-semibold text-gray-700 mb-3">
-            {t.quick_select_cities || 'Quick Select'}
+            {t('manual.quick_select')}
           </h4>
           <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
             {commonCities.map((cityData, index) => (
@@ -142,7 +147,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
           {/* City Input */}
           <div>
             <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-              {t.label_city || 'City'} *
+              {t('labels.city')} *
             </label>
             <input
               type="text"
@@ -152,7 +157,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.city ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder={t.placeholder_city || 'Enter your city'}
+              placeholder={t('placeholders.city')}
             />
             {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
           </div>
@@ -160,7 +165,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
           {/* Country Input */}
           <div>
             <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
-              {t.label_country || 'Country'} *
+              {t('labels.country')} *
             </label>
             <input
               type="text"
@@ -170,7 +175,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.country ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder={t.placeholder_country || 'Enter your country'}
+              placeholder={t('placeholders.country')}
             />
             {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
           </div>
@@ -185,7 +190,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="useCoordinates" className="ml-2 block text-sm text-gray-700">
-              {t.label_use_coordinates || 'I know the exact coordinates'}
+              {t('manual.use_coordinates')}
             </label>
           </div>
 
@@ -194,7 +199,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="latitude" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.label_latitude || 'Latitude'}
+                  {t('labels.latitude')}
                 </label>
                 <input
                   type="number"
@@ -213,7 +218,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
               </div>
               <div>
                 <label htmlFor="longitude" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.label_longitude || 'Longitude'}
+                  {t('labels.longitude')}
                 </label>
                 <input
                   type="number"
@@ -239,7 +244,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
               type="submit"
               className="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors duration-200"
             >
-              {t.btn_set_location || 'Set Location'}
+                {t('buttons.set_location')}
             </button>
             <div className="flex gap-3">
               <button
@@ -247,14 +252,14 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
                 onClick={handleReset}
                 className="flex-1 bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
               >
-                {t.btn_reset || 'Reset'}
+                {i18n.t('common.buttons.reset')}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="flex-1 bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-400 transition-colors duration-200"
               >
-                {t.btn_cancel || 'Cancel'}
+                {i18n.t('common.buttons.cancel')}
               </button>
             </div>
           </div>

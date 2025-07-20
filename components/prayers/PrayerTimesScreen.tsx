@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { PrayerTimes, Location } from '../types';
-import { PrayerTimesService } from '../services/PrayerTimesService';
-import { useUserPreferencesStore } from '../stores/userPreferencesStore';
-import { usePrayerTimesStore } from '../stores/prayerTimesStore';
-import { locationService } from '../services/LocationService';
-import { useOfflinePrayerTimes } from '../hooks/useOfflineFirst';
-import { useTranslation } from '../i18n/I18nProvider';
+import { PrayerTimes, Location } from '../../types';
+import { PrayerTimesService } from '../../services/PrayerTimesService';
+import { useUserPreferencesStore } from '../../stores/userPreferencesStore';
+import { usePrayerTimesStore } from '../../stores/prayerTimesStore';
+import { locationService } from '../../services/LocationService';
+import { useOfflinePrayerTimes } from '../../hooks/useOfflineFirst';
+import { useTranslation } from '../../i18n/I18nProvider';
 import PrayerTimeCard from './PrayerTimeCard';
-import ManualLocationInput from './ManualLocationInput';
-import LocationPermissionModal from './LocationPermissionModal';
-import OfflineIndicator from './OfflineIndicator';
-import { ArrowLeftIcon, MapPinIcon, CalendarIcon } from './icons/HeroIcons';
-import { Header } from './Header';
+import ManualLocationInput from '../location/ManualLocationInput';
+import LocationPermissionModal from '../location/LocationPermissionModal';
+import OfflineIndicator from '../shared/OfflineIndicator';
+import { ArrowLeftIcon, MapPinIcon, CalendarIcon } from '../icons/HeroIcons';
+import { Header } from '../shared/Header';
 
 interface PrayerTimesScreenProps {
   onBack: () => void;
@@ -216,6 +216,12 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
             <span className="text-sm">
               {preferences.location.city}, {preferences.location.country}
             </span>
+            <button 
+              onClick={() => setShowManualLocationInput(true)} 
+              className="text-xs font-semibold text-blue-600 hover:underline"
+            >
+              ({t('common:buttons.change', 'Change')})
+            </button>
           </div>
         )}
 
@@ -309,7 +315,10 @@ const PrayerTimesScreen: React.FC<PrayerTimesScreenProps> = ({ onBack }) => {
         isOpen={showLocationPermissionModal}
         onClose={handleLocationPermissionDenied}
         onRetry={handleLocationSetup}
-        onManualInput={() => setShowManualLocationInput(true)}
+        onManualInput={() => {
+          setShowLocationPermissionModal(false);
+          setShowManualLocationInput(true);
+        }}
         error={null}
         t={t}
       />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useTranslation } from '../../i18n/I18nProvider';
 
 interface IslamicEvent {
   name: string;

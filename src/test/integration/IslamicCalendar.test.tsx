@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { IslamicCalendarScreen } from '../../../components/IslamicCalendarScreen';
+import { IslamicCalendarScreen } from '../../../components/calendar/IslamicCalendarScreen';
 import { IslamicCalendarService } from '../../../services/IslamicCalendarService';
 import { Language, Location, PrayerTimes } from '../../../types';
 

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { SettingsService, ComprehensiveUserPreferences } from '../services/SettingsService';
-import { useTranslation } from '../i18n/I18nProvider';
-import { Header } from './Header';
+import { SettingsService, ComprehensiveUserPreferences } from '../../services/SettingsService';
+import { useTranslation } from '../../i18n/I18nProvider';
+import { Header } from '../shared/Header';
 import MadhabSelector from './MadhabSelector';
 import NotificationSettings from './NotificationSettings';
 import LanguageSettings from './LanguageSettings';
 import DisplaySettings from './DisplaySettings';
 import CalculationMethodSelector from './CalculationMethodSelector';
-import OfflineErrorBoundary from './OfflineErrorBoundary';
+import OfflineErrorBoundary from '../shared/OfflineErrorBoundary';
 import RefreshSettings from './RefreshSettings';
 
 // Icons

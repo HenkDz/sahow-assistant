@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { useLanguage } from '../i18n/I18nProvider';
-import { useUserPreferencesStore } from '../stores/userPreferencesStore';
+import { useLanguage } from '../../i18n/I18nProvider';
+import { useUserPreferencesStore } from '../../stores/userPreferencesStore';
 
 interface LanguageSwitcherProps {}
 

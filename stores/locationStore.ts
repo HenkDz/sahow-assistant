@@ -17,7 +17,7 @@ interface LocationState {
   setManualLocation: (city: string, country: string, latitude: number, longitude: number) => void;
 }
 
-export const useLocationStore = create<LocationState>((set, get) => ({
+export const useLocationStore = create<LocationState>((set) => ({
   currentLocation: null,
   isGpsEnabled: false,
   isLoading: false,

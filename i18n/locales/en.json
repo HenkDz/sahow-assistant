@@ -6,7 +6,8 @@
       "retry": "Retry",
       "reset": "Reset",
       "settings": "Settings",
-      "history": "History"
+      "history": "History",
+      "change": "Change"
     },
     "status": {
       "loading": "Loading...",

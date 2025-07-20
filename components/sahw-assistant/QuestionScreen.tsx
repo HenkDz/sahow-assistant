@@ -2,7 +2,7 @@
 import React from 'react';
 import { QuestionType, ResultKey } from '../../types';
 import ChoiceButton from './ChoiceButton';
-import { Header } from '../Header';
+import { Header } from '../shared/Header';
 import { useTranslation } from '../../i18n/I18nProvider';
 
 interface QuestionScreenProps {

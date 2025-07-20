@@ -4,20 +4,20 @@ import { View, QuestionType, ResultKey } from './types';
 import { useTranslation } from './i18n/I18nProvider';
 import { I18nSettingsProvider } from './i18n/I18nSettingsProvider';
 import { useSettingsInitialization } from './hooks/useSettingsInitialization';
-import { SettingsLoadingScreen } from './components/SettingsLoadingScreen';
-import { SettingsErrorBoundary } from './components/SettingsErrorBoundary';
+import { SettingsLoadingScreen } from './components/shared/SettingsLoadingScreen';
+import { SettingsErrorBoundary } from './components/shared/SettingsErrorBoundary';
 import WelcomeScreen from './components/sahw-assistant/WelcomeScreen';
 import QuestionScreen from './components/sahw-assistant/QuestionScreen';
 import ResultScreen from './components/sahw-assistant/ResultScreen';
-import { MainNavigationScreen } from './components/MainNavigationScreen';
-import PrayerTimesScreen from './components/PrayerTimesScreen';
-import QiblaCompass from './components/QiblaCompass';
-import { IslamicCalendarScreen } from './components/IslamicCalendarScreen';
-import TasbihScreen from './components/TasbihScreen';
-import MosqueFinderScreen from './components/MosqueFinderScreen';
-import SettingsScreen from './components/SettingsScreen';
-import OfflineIndicator from './components/OfflineIndicator';
-import OfflineErrorBoundary from './components/OfflineErrorBoundary';
+import { MainNavigationScreen } from './components/shared/MainNavigationScreen';
+import PrayerTimesScreen from './components/prayers/PrayerTimesScreen';
+import QiblaCompass from './components/qibla/QiblaCompass';
+import { IslamicCalendarScreen } from './components/calendar/IslamicCalendarScreen';
+import TasbihScreen from './components/tasbih/TasbihScreen';
+import MosqueFinderScreen from './components/mosques/MosqueFinderScreen';
+import SettingsScreen from './components/settings/SettingsScreen';
+import OfflineIndicator from './components/shared/OfflineIndicator';
+import OfflineErrorBoundary from './components/shared/OfflineErrorBoundary';
 
 // Main App component that uses i18n and settings
 function AppContent() {

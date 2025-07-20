@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeftIcon } from './icons/HeroIcons';
+import { ArrowLeftIcon } from '../icons/HeroIcons';
 
 interface HeaderProps {
   title: string;

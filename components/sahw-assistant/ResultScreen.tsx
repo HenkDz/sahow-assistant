@@ -2,7 +2,7 @@
 import React from 'react';
 import { ResultKey } from '../../types';
 import { ScaleIcon, BookOpenIcon, ArrowPathIcon } from '../icons/HeroIcons';
-import { Header } from '../Header';
+import { Header } from '../shared/Header';
 import { useTranslation } from '../../i18n/I18nProvider';
 
 interface ResultScreenProps {

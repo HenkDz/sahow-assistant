@@ -1,6 +1,6 @@
 import React from 'react';
-import { Language } from '../types';
-import { useUserPreferencesStore } from '../stores/userPreferencesStore';
+import { Language } from '../../types';
+import { useUserPreferencesStore } from '../../stores/userPreferencesStore';
 
 interface LanguageSettingsProps {
   value: Language;
