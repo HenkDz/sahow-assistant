@@ -3,9 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Location } from '../../types';
 import { useTranslation } from '../../i18n/I18nProvider';
-import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapMouseEvent } from '@vis.gl/react-google-maps';
-// Temporarily disable places autocomplete to avoid API issues
-// import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
+import { APIProvider, Map, AdvancedMarker, MapMouseEvent } from '@vis.gl/react-google-maps';
 
 interface ManualLocationInputProps {
   isOpen: boolean;
@@ -13,6 +11,48 @@ interface ManualLocationInputProps {
   onLocationSet: (location: Location) => void;
   initialLocation?: Location;
 }
+
+const AutocompleteInput = ({ onPlaceChanged, initialValue }: { onPlaceChanged: (place: google.maps.places.PlaceResult) => void, initialValue: string }) => {
+  const { t } = useTranslation('location');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+
+    const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+      types: ['(cities)'],
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.geometry) {
+        onPlaceChanged(place);
+        setValue(place.formatted_address || '');
+      }
+    });
+
+    return () => {
+      if (autocomplete) {
+        google.maps.event.clearInstanceListeners(autocomplete);
+      }
+    };
+  }, [onPlaceChanged]);
+
+  return (
+    <input
+      ref={inputRef}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300"
+      placeholder={t('placeholders.city')}
+    />
+  );
+};
 
 const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
   isOpen,
@@ -27,14 +67,9 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
   const [longitude, setLongitude] = useState(initialLocation?.longitude || 31.2357);
   const [useCoordinates, setUseCoordinates] = useState(!!(initialLocation?.latitude && initialLocation?.longitude));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
+  const [inputValue, setInputValue] = useState('');
   const modalContentRef = useRef<HTMLDivElement>(null);
-
-  // Temporary fallback without places autocomplete
-  const [value, setValue] = useState('');
-  const ready = true;
-  const status: string = 'ZERO_RESULTS';
-  const data: any[] = [];
-  const clearSuggestions = () => {};
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,17 +90,20 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
     if (initialLocation) {
       setLatitude(initialLocation.latitude || 30.0444);
       setLongitude(initialLocation.longitude || 31.2357);
-      setValue(initialLocation.city ? `${initialLocation.city}, ${initialLocation.country}` : '');
+      setInputValue(initialLocation.city ? `${initialLocation.city}, ${initialLocation.country}` : '');
     }
   }, [initialLocation]);
 
-
   if (!isOpen) return null;
 
-  const handleSelect = ({ description }: { description: string }) => () => {
-    setValue(description);
-    clearSuggestions();
-    // Geocoding temporarily disabled
+  const handlePlaceChanged = (place: google.maps.places.PlaceResult) => {
+    setSelectedPlace(place);
+    setInputValue(place.formatted_address || '');
+    if (place.geometry?.location) {
+      setLatitude(place.geometry.location.lat());
+      setLongitude(place.geometry.location.lng());
+      setUseCoordinates(true);
+    }
   };
 
   const handleMapClick = (event: MapMouseEvent) => {
@@ -74,15 +112,16 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
       setLatitude(lat);
       setLongitude(lng);
       setUseCoordinates(true);
-      // Reverse geocoding temporarily disabled
+      setSelectedPlace(null); 
+      setInputValue(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
     }
   };
   
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!value.trim()) {
-      newErrors.city = t('validation.city_required');
+    if (!selectedPlace && !useCoordinates) {
+        newErrors.city = t('validation.city_required');
     }
 
     if (useCoordinates) {
@@ -109,22 +148,36 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
       return;
     }
 
-    // Extract city and country from the full address
     let city = '';
     let country = '';
-    const addressParts = value.split(',');
-    if (addressParts.length > 1) {
-      city = addressParts[0].trim();
-      country = addressParts[addressParts.length - 1].trim();
-    } else {
-      city = value;
+    const lat = latitude;
+    const lng = longitude;
+
+    if (selectedPlace) {
+        const addressComponents = selectedPlace.address_components;
+        if (addressComponents) {
+            for (const component of addressComponents) {
+                if (component.types.includes('locality')) {
+                city = component.long_name;
+                }
+                if (component.types.includes('country')) {
+                country = component.long_name;
+                }
+            }
+        }
+    }
+
+    if ((!city || !country) && selectedPlace?.formatted_address) {
+        const parts = selectedPlace.formatted_address.split(',');
+        city = city || parts[0]?.trim();
+        country = country || parts[parts.length - 1]?.trim();
     }
 
     onLocationSet({
       city,
       country,
-      latitude,
-      longitude,
+      latitude: lat,
+      longitude: lng,
     });
     onClose();
   };
@@ -133,30 +186,10 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
     setLatitude(initialLocation?.latitude || 30.0444);
     setLongitude(initialLocation?.longitude || 31.2357);
     setUseCoordinates(!!(initialLocation?.latitude && initialLocation?.longitude));
-    setValue(initialLocation?.city ? `${initialLocation.city}, ${initialLocation.country}` : '');
+    setSelectedPlace(null);
+    setInputValue(initialLocation?.city ? `${initialLocation.city}, ${initialLocation.country}` : '');
     setErrors({});
   };
-
-  const renderSuggestions = () => (
-    <div className="absolute top-full left-0 right-0 bg-white shadow-lg rounded-b-lg border z-10">
-      {data.map((suggestion: google.maps.places.AutocompletePrediction) => {
-        const {
-          place_id,
-          structured_formatting: { main_text, secondary_text },
-        } = suggestion;
-
-        return (
-          <div
-            key={place_id}
-            onClick={handleSelect(suggestion)}
-            className="p-3 hover:bg-gray-100 cursor-pointer"
-          >
-            <strong>{main_text}</strong> <small>{secondary_text}</small>
-          </div>
-        );
-      })}
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -171,36 +204,26 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('labels.city')} *
-            </label>
-            <input
-              id="city"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              disabled={!ready}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.city ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={t('placeholders.city')}
-            />
-            {status === 'OK' && renderSuggestions()}
-            {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
-          </div>
+          <APIProvider apiKey={apiKey} libraries={['places']}>
+            <div className="relative">
+              <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('labels.city')} *
+              </label>
+              <AutocompleteInput onPlaceChanged={handlePlaceChanged} initialValue={inputValue} />
+              {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+            </div>
 
-          <div className="h-64 w-full rounded-lg overflow-hidden">
-            <APIProvider apiKey={apiKey}>
-              <Map
-                center={{ lat: latitude, lng: longitude }}
-                zoom={9}
-                onClick={handleMapClick}
-                mapId="sahow-assistant-map"
-              >
-                <AdvancedMarker position={{ lat: latitude, lng: longitude }} />
-              </Map>
-            </APIProvider>
-          </div>
+            <div className="h-64 w-full rounded-lg overflow-hidden">
+                <Map
+                  center={{ lat: latitude, lng: longitude }}
+                  zoom={9}
+                  onClick={handleMapClick}
+                  mapId="sahow-assistant-map"
+                >
+                  <AdvancedMarker position={{ lat: latitude, lng: longitude }} />
+                </Map>
+            </div>
+          </APIProvider>
           
           {/* Coordinates Toggle & Inputs */}
           <div className="flex items-center">
