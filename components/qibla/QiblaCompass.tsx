@@ -313,10 +313,10 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
           {isManualMode && (
             <div className="absolute top-0 right-0 z-30">
               <button
-                onClick={() => setManualOrientationMode(prev => prev === 'north-up' ? 'qibla-up' : 'north-up')}
-                className="bg-white rounded-full p-2 shadow-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                title={manualOrientationMode === 'north-up' ? 'Switch to Qibla Up' : 'Switch to North Up'}
-              >
+                              onClick={() => setManualOrientationMode(prev => prev === 'north-up' ? 'qibla-up' : 'north-up')}
+              className="bg-white rounded-full p-2 shadow-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+              title={manualOrientationMode === 'north-up' ? t('compass.toggle_hints.to_qibla_up') : t('compass.toggle_hints.to_north_up')}
+            >
                 {manualOrientationMode === 'north-up' ? (
                   <div className="w-6 h-6 flex items-center justify-center">
                     <span className="text-blue-600 font-bold text-sm">N</span>
@@ -425,18 +425,18 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
               }`}>
               {isManualMode
                 ? manualOrientationMode === 'qibla-up'
-                  ? 'Manual Mode - Qibla Direction Up'
-                  : `Manual Mode - Qibla is ${Math.round(compassState.qiblaDirection)}° from North`
+                  ? t('compass.status.manual_qibla_up')
+                  : t('compass.status.manual_north_up', { degrees: Math.round(compassState.qiblaDirection) })
                 : isPointingToQibla
-                  ? 'Aligned with Qibla'
-                  : 'Aligning...'
+                  ? t('compass.status.aligned')
+                  : t('compass.status.aligning')
               }
             </p>
             {isManualMode && (
               <p className="text-blue-600 text-sm mt-1">
                 {manualOrientationMode === 'qibla-up' 
-                  ? 'Face the direction of the green needle (top of compass)'
-                  : 'Device orientation not available. Using manual compass mode.'
+                  ? t('compass.status.face_needle')
+                  : t('compass.status.device_unavailable')
                 }
               </p>
             )}
@@ -473,7 +473,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
                   : 'text-slate-600 hover:text-slate-800'
               }`}
             >
-              Automatic
+              {t('compass.modes.automatic')}
             </button>
             <button
               onClick={() => {
@@ -486,7 +486,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
                   : 'text-slate-600 hover:text-slate-800'
               }`}
             >
-              Manual
+              {t('compass.modes.manual')}
             </button>
           </div>
         </div>
@@ -498,28 +498,29 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
               <InformationCircleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-blue-800 font-semibold text-sm mb-2">
-                  Manual Compass Mode
+                  {t('compass.manual_mode_title')}
                 </p>
                 <p className="text-blue-700 text-sm mb-2">
                   {manualOrientationMode === 'qibla-up' 
-                    ? 'Using Qibla-up mode. The compass is oriented with Qibla at the top.'
-                    : 'Using manual compass mode. The needle shows the direction to Qibla from North.'
+                    ? t('compass.orientation_modes.qibla_up.description')
+                    : t('compass.orientation_modes.north_up.description')
                   }
                 </p>
                 <ul className="text-blue-700 text-sm space-y-1">
                   {manualOrientationMode === 'qibla-up' ? (
                     <>
-                      <li>• The green needle points straight up (towards Qibla)</li>
-                      <li>• Simply face the direction of the green needle</li>
-                      <li>• Use the compass toggle (🕋/N) to switch orientation modes</li>
+                      {(t('compass.orientation_modes.qibla_up.instructions', { returnObjects: true }) as string[]).map((instruction: string, index: number) => (
+                        <li key={index}>• {instruction}</li>
+                      ))}
                     </>
                   ) : (
                     <>
-                      <li>• Find North using a physical compass or compass app</li>
-                      <li>• Point your device towards North</li>
-                      <li>• The needle shows Qibla direction ({Math.round(compassState.qiblaDirection)}° from North)</li>
-                      <li>• Turn towards the direction indicated by the needle</li>
-                      <li>• Use the compass toggle (🕋/N) to switch orientation modes</li>
+                      {(t('compass.orientation_modes.north_up.instructions', { 
+                        returnObjects: true, 
+                        degrees: Math.round(compassState.qiblaDirection) 
+                      }) as string[]).map((instruction: string, index: number) => (
+                        <li key={index}>• {instruction}</li>
+                      ))}
                     </>
                   )}
                 </ul>

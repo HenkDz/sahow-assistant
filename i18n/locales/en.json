@@ -139,7 +139,44 @@
     "compass": {
       "calibration": "Compass Calibration",
       "instructions": "Move your device in a figure-8 pattern to calibrate the compass",
-      "not_supported": "Compass not supported on this device"
+      "not_supported": "Compass not supported on this device",
+      "modes": {
+        "automatic": "Automatic",
+        "manual": "Manual"
+      },
+      "status": {
+        "manual_north_up": "Manual Mode - Qibla is {{degrees}}° from North",
+        "manual_qibla_up": "Manual Mode - Qibla Direction Up",
+        "aligned": "Aligned with Qibla",
+        "aligning": "Aligning...",
+        "device_unavailable": "Device orientation not available. Using manual compass mode.",
+        "face_needle": "Face the direction of the green needle (top of compass)"
+      },
+      "orientation_modes": {
+        "north_up": {
+          "description": "Using manual compass mode. The needle shows the direction to Qibla from North.",
+          "instructions": [
+            "Find North using a physical compass or compass app",
+            "Point your device towards North",
+            "The needle shows Qibla direction ({{degrees}}° from North)",
+            "Turn towards the direction indicated by the needle",
+            "Use the compass toggle (🕋/N) to switch orientation modes"
+          ]
+        },
+        "qibla_up": {
+          "description": "Using Qibla-up mode. The compass is oriented with Qibla at the top.",
+          "instructions": [
+            "The green needle points straight up (towards Qibla)",
+            "Simply face the direction of the green needle",
+            "Use the compass toggle (🕋/N) to switch orientation modes"
+          ]
+        }
+      },
+      "manual_mode_title": "Manual Compass Mode",
+      "toggle_hints": {
+        "to_qibla_up": "Switch to Qibla Up",
+        "to_north_up": "Switch to North Up"
+      }
     },
     "location_required": "Location required for qibla direction",
     "error_title": "Error",
