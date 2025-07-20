@@ -1,6 +1,7 @@
 import { Device } from '@capacitor/device';
 import { Location } from '../types';
 import { OfflineStorageService } from './OfflineStorageService';
+import { SettingsService } from './SettingsService';
 
 export interface QiblaResult {
   direction: number; // Qibla direction in degrees (0-360)
@@ -259,6 +260,129 @@ export class QiblaService {
       await OfflineStorageService.clearAllCache();
     } catch (error) {
       console.error('Error clearing Qibla cache:', error);
+    }
+  }
+
+  /**
+   * Calculate static Qibla direction from North for manual compass mode
+   * This method returns the direction from North (0-360 degrees) without device orientation
+   */
+  static calculateStaticQiblaDirection(userLocation: Location): QiblaServiceResult {
+    try {
+      // Validate input coordinates
+      if (!this.isValidLocation(userLocation)) {
+        return {
+          success: false,
+          error: 'Invalid location coordinates provided'
+        };
+      }
+
+      // Use the same calculation as the regular method
+      const result = this.calculateQiblaDirection(userLocation);
+      
+      if (result.success && result.result) {
+        return {
+          success: true,
+          result: {
+            direction: result.result.direction, // This is already the direction from North
+            distance: result.result.distance
+          }
+        };
+      }
+
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to calculate static Qibla direction: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  /**
+   * Get current compass mode preference
+   */
+  static async getCompassModePreference(): Promise<'automatic' | 'manual'> {
+    try {
+      const preferences = await SettingsService.getPreferences();
+      return preferences.qibla.compassMode;
+    } catch (error) {
+      console.error('Error getting compass mode preference:', error);
+      return 'automatic'; // Default fallback
+    }
+  }
+
+  /**
+   * Set compass mode preference
+   */
+  static async setCompassModePreference(mode: 'automatic' | 'manual'): Promise<void> {
+    try {
+      await SettingsService.updatePreferences('qibla', { compassMode: mode });
+    } catch (error) {
+      console.error('Error setting compass mode preference:', error);
+      throw new Error(`Failed to set compass mode preference: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Check if automatic compass mode is supported on the current device
+   */
+  static async isAutomaticModeSupported(): Promise<boolean> {
+    try {
+      const info = await Device.getInfo();
+      
+      if (info.platform === 'web') {
+        // Check if DeviceOrientationEvent is available
+        if (typeof DeviceOrientationEvent === 'undefined') {
+          return false;
+        }
+
+        // For iOS 13+ devices, check if permission is required
+        if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+          try {
+            const permission = await (DeviceOrientationEvent as any).requestPermission();
+            return permission === 'granted';
+          } catch (error) {
+            console.warn('Error checking device orientation permission:', error);
+            return false;
+          }
+        }
+
+        // For other browsers, assume it's supported if the API exists
+        return true;
+      } else {
+        // For mobile platforms, assume orientation is supported
+        // This can be enhanced with platform-specific checks in the future
+        return true;
+      }
+    } catch (error) {
+      console.error('Error checking automatic mode support:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get preference for manual mode fallback when sensors fail
+   */
+  static async getPreferManualWhenSensorsFail(): Promise<boolean> {
+    try {
+      const preferences = await SettingsService.getPreferences();
+      return preferences.qibla.preferManualWhenSensorsFail;
+    } catch (error) {
+      console.error('Error getting manual fallback preference:', error);
+      return true; // Default to true for better user experience
+    }
+  }
+
+  /**
+   * Set preference for manual mode fallback when sensors fail
+   */
+  static async setPreferManualWhenSensorsFail(prefer: boolean): Promise<void> {
+    try {
+      await SettingsService.updatePreferences('qibla', { preferManualWhenSensorsFail: prefer });
+    } catch (error) {
+      console.error('Error setting manual fallback preference:', error);
+      throw new Error(`Failed to set manual fallback preference: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

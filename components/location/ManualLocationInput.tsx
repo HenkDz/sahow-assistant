@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Location } from '../../types';
 import { useTranslation } from '../../i18n/I18nProvider';
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapMouseEvent } from '@vis.gl/react-google-maps';
-import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
+// Temporarily disable places autocomplete to avoid API issues
+// import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 
 interface ManualLocationInputProps {
   isOpen: boolean;
@@ -28,18 +29,12 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const modalContentRef = useRef<HTMLDivElement>(null);
 
-  const {
-    ready,
-    value,
-    suggestions: { status, data },
-    setValue,
-    clearSuggestions,
-  } = usePlacesAutocomplete({
-    requestOptions: {
-      /* Define search scope here */
-    },
-    debounce: 300,
-  });
+  // Temporary fallback without places autocomplete
+  const [value, setValue] = useState('');
+  const ready = true;
+  const status: string = 'ZERO_RESULTS';
+  const data: any[] = [];
+  const clearSuggestions = () => {};
 
   useEffect(() => {
     if (!isOpen) return;
@@ -60,27 +55,17 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
     if (initialLocation) {
       setLatitude(initialLocation.latitude || 30.0444);
       setLongitude(initialLocation.longitude || 31.2357);
-      setValue(initialLocation.city ? `${initialLocation.city}, ${initialLocation.country}` : '', false);
+      setValue(initialLocation.city ? `${initialLocation.city}, ${initialLocation.country}` : '');
     }
-  }, [initialLocation, setValue]);
+  }, [initialLocation]);
 
 
   if (!isOpen) return null;
 
   const handleSelect = ({ description }: { description: string }) => () => {
-    setValue(description, false);
+    setValue(description);
     clearSuggestions();
-
-    getGeocode({ address: description })
-      .then((results: google.maps.GeocoderResult[]) => {
-        const { lat, lng } = getLatLng(results[0]);
-        setLatitude(lat);
-        setLongitude(lng);
-        setUseCoordinates(true);
-      })
-      .catch((error: any) => {
-        console.log('Error: ', error);
-      });
+    // Geocoding temporarily disabled
   };
 
   const handleMapClick = (event: MapMouseEvent) => {
@@ -89,16 +74,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
       setLatitude(lat);
       setLongitude(lng);
       setUseCoordinates(true);
-
-      getGeocode({ location: { lat, lng } })
-        .then((results: google.maps.GeocoderResult[]) => {
-          if (results[0]) {
-            setValue(results[0].formatted_address, false);
-          }
-        })
-        .catch((error: any) => {
-          console.log('Error: ', error);
-        });
+      // Reverse geocoding temporarily disabled
     }
   };
   
@@ -157,7 +133,7 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
     setLatitude(initialLocation?.latitude || 30.0444);
     setLongitude(initialLocation?.longitude || 31.2357);
     setUseCoordinates(!!(initialLocation?.latitude && initialLocation?.longitude));
-    setValue(initialLocation?.city ? `${initialLocation.city}, ${initialLocation.country}` : '', false);
+    setValue(initialLocation?.city ? `${initialLocation.city}, ${initialLocation.country}` : '');
     setErrors({});
   };
 

@@ -30,6 +30,7 @@ interface EnhancedUserPreferencesState {
   updateNotificationPreferences: (updates: Partial<ComprehensiveUserPreferences['notifications']>) => Promise<void>;
   updateDisplayPreferences: (updates: Partial<ComprehensiveUserPreferences['display']>) => Promise<void>;
   updateCalculationPreferences: (updates: Partial<ComprehensiveUserPreferences['calculation']>) => Promise<void>;
+  updateQiblaPreferences: (updates: Partial<ComprehensiveUserPreferences['qibla']>) => Promise<void>;
   updatePrivacyPreferences: (updates: Partial<ComprehensiveUserPreferences['privacy']>) => Promise<void>;
   updateAccessibilityPreferences: (updates: Partial<ComprehensiveUserPreferences['accessibility']>) => Promise<void>;
   
@@ -83,6 +84,10 @@ const getDefaultPreferences = (): ComprehensiveUserPreferences => ({
     madhab: Madhab.HANAFI,
     elevationRule: 'none',
     highLatRule: 'none'
+  },
+  qibla: {
+    compassMode: 'automatic',
+    preferManualWhenSensorsFail: true
   },
   privacy: {
     analyticsEnabled: true,
@@ -241,6 +246,15 @@ export const useUserPreferencesStore = create<EnhancedUserPreferencesState>()(
           calculation: newCalculation,
           calculationMethod: newCalculation.calculationMethod,
           madhab: newCalculation.madhab
+        });
+        set({ isSyncing: false });
+      },
+      
+      updateQiblaPreferences: async (updates) => {
+        set({ isSyncing: true });
+        const currentQibla = get().preferences.qibla;
+        await get()._validateAndSync({ 
+          qibla: { ...currentQibla, ...updates }
         });
         set({ isSyncing: false });
       },

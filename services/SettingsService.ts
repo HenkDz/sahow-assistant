@@ -36,6 +36,10 @@ export interface ComprehensiveUserPreferences extends UserPreferences {
   notifications: NotificationPreferences;
   display: DisplayPreferences;
   calculation: CalculationPreferences;
+  qibla: {
+    compassMode: 'automatic' | 'manual';
+    preferManualWhenSensorsFail: boolean;
+  };
   privacy: {
     analyticsEnabled: boolean;
     crashReportingEnabled: boolean;
@@ -83,6 +87,10 @@ export class SettingsService {
       elevationRule: 'none',
       highLatRule: 'none'
     },
+    qibla: {
+      compassMode: 'automatic',
+      preferManualWhenSensorsFail: true
+    },
     privacy: {
       analyticsEnabled: true,
       crashReportingEnabled: true,
@@ -116,6 +124,7 @@ export class SettingsService {
         notifications: { ...this.DEFAULTS.notifications, ...stored.notifications },
         display: { ...this.DEFAULTS.display, ...stored.display },
         calculation: { ...this.DEFAULTS.calculation, ...stored.calculation },
+        qibla: { ...this.DEFAULTS.qibla, ...stored.qibla },
         privacy: { ...this.DEFAULTS.privacy, ...stored.privacy },
         accessibility: { ...this.DEFAULTS.accessibility, ...stored.accessibility }
       };

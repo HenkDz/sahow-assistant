@@ -7,7 +7,7 @@ import { useTranslation } from '../../i18n/I18nProvider';
 import { MapPinIcon, ExclamationTriangleIcon, InformationCircleIcon } from '../icons/HeroIcons';
 import { Header } from '../shared/Header';
 import { useUserPreferencesStore } from '../../stores/userPreferencesStore';
-import ManualLocationInput from '../location/ManualLocationInput';
+import SimpleLocationInput from '../location/SimpleLocationInput';
 import LocationPermissionModal from '../location/LocationPermissionModal';
 
 interface QiblaCompassProps {
@@ -42,6 +42,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
   const [showCalibrationInstructions, setShowCalibrationInstructions] = useState(false);
   const [locationError, setLocationError] = useState<any>(null);
   const [isPointingToQibla, setIsPointingToQibla] = useState(false);
+  const [isManualMode, setIsManualMode] = useState(false);
   const compassRef = useRef<HTMLDivElement>(null);
   const needleRef = useRef<HTMLDivElement>(null);
 
@@ -90,21 +91,38 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
         throw new Error(qiblaResult.error || 'Unable to calculate Qibla direction');
       }
 
-      // Start watching device orientation
-      const orientationStarted = await qiblaService.watchDeviceOrientation(handleOrientationChange);
+      // Check if automatic mode is supported
+      const isAutomaticSupported = await QiblaService.isAutomaticModeSupported();
       
+      // Always set the basic compass state first
       setCompassState(prev => ({
         ...prev,
         qiblaDirection: qiblaResult.result!.direction,
         distance: qiblaResult.result!.distance,
         locationName: `${location!.city}, ${location!.country}`,
         isLoading: false,
-        isCalibrated: orientationStarted,
-        error: orientationStarted ? null : t('compass.not_supported')
+        isCalibrated: true,
+        error: null
       }));
-
-      if (!orientationStarted) {
-        setShowCalibrationInstructions(true);
+      
+      if (isAutomaticSupported) {
+        // Try automatic mode first
+        try {
+          const orientationStarted = await qiblaService.watchDeviceOrientation(handleOrientationChange);
+          
+          if (orientationStarted) {
+            setIsManualMode(false);
+          } else {
+            // Fall back to manual mode
+            setIsManualMode(true);
+          }
+        } catch (error) {
+          console.warn('Failed to start automatic orientation tracking, using manual mode:', error);
+          setIsManualMode(true);
+        }
+      } else {
+        // Use manual mode directly
+        setIsManualMode(true);
       }
 
     } catch (error) {
@@ -142,10 +160,16 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
   };
 
   const calculateNeedleRotation = (): number => {
-    return QiblaService.calculateCompassBearing(
-      compassState.qiblaDirection,
-      compassState.deviceOrientation
-    );
+    if (isManualMode) {
+      // In manual mode, show static direction from North
+      return compassState.qiblaDirection;
+    } else {
+      // In automatic mode, adjust for device orientation
+      return QiblaService.calculateCompassBearing(
+        compassState.qiblaDirection,
+        compassState.deviceOrientation
+      );
+    }
   };
 
   const formatDistance = (distance: number): string => {
@@ -185,7 +209,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
             <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
               <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <p className="text-red-600 font-semibold mb-2">
-                {t('common.status.error_title')}
+                {t('error_title')}
               </p>
               <p className="text-red-500 text-sm mb-4">{compassState.error}</p>
               
@@ -204,7 +228,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
               onClick={retryInitialization}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors mb-4"
             >
-              {t('common.buttons.retry')}
+              {t('retry')}
             </button>
           </div>
         </div>
@@ -226,7 +250,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
               onClick={() => setShowManualLocationInput(true)} 
               className="text-xs font-semibold text-blue-600 hover:underline"
             >
-              ({t('common.buttons.change')})
+              ({t('change')})
             </button>
           </div>
         )}
@@ -320,20 +344,59 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
 
         {/* Status Indicator */}
         <div className={`text-center mt-4 p-3 rounded-xl ${
-          isPointingToQibla 
-            ? 'bg-green-100 border border-green-200' 
-            : 'bg-orange-100 border border-orange-200'
+          isManualMode 
+            ? 'bg-blue-100 border border-blue-200'
+            : isPointingToQibla 
+              ? 'bg-green-100 border border-green-200' 
+              : 'bg-orange-100 border border-orange-200'
         }`}>
           <p className={`font-semibold ${
-            isPointingToQibla ? 'text-green-800' : 'text-orange-800'
+            isManualMode 
+              ? 'text-blue-800'
+              : isPointingToQibla 
+                ? 'text-green-800' 
+                : 'text-orange-800'
           }`}>
-            {isPointingToQibla ? 'Aligned with Qibla' : 'Aligning...'}
+            {isManualMode 
+              ? `Manual Mode - Qibla is ${Math.round(compassState.qiblaDirection)}° from North`
+              : isPointingToQibla 
+                ? 'Aligned with Qibla' 
+                : 'Aligning...'
+            }
           </p>
+          {isManualMode && (
+            <p className="text-blue-600 text-sm mt-1">
+              Device orientation not available. Using manual compass mode.
+            </p>
+          )}
         </div>
       </div>
 
+      {/* Manual Mode Instructions */}
+      {isManualMode && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <InformationCircleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-blue-800 font-semibold text-sm mb-2">
+                Manual Compass Mode
+              </p>
+              <p className="text-blue-700 text-sm mb-2">
+                Device orientation sensors are not available or not working properly. Using manual compass mode.
+              </p>
+              <ul className="text-blue-700 text-sm space-y-1">
+                <li>• Find North using a physical compass or compass app</li>
+                <li>• Point your device towards North</li>
+                <li>• The needle shows Qibla direction ({Math.round(compassState.qiblaDirection)}° from North)</li>
+                <li>• Turn towards the direction indicated by the needle</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Calibration Status */}
-      {!compassState.isCalibrated && (
+      {!isManualMode && !compassState.isCalibrated && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
           <div className="flex items-start gap-3">
             <InformationCircleIcon className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
@@ -374,7 +437,7 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
       </div>
       </div>
 
-      <ManualLocationInput
+      <SimpleLocationInput
         isOpen={showManualLocationInput}
         onClose={() => setShowManualLocationInput(false)}
         onLocationSet={handleManualLocationSet}

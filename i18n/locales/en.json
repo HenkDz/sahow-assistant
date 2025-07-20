@@ -141,7 +141,10 @@
       "instructions": "Move your device in a figure-8 pattern to calibrate the compass",
       "not_supported": "Compass not supported on this device"
     },
-    "location_required": "Location required for qibla direction"
+    "location_required": "Location required for qibla direction",
+    "error_title": "Error",
+    "retry": "Retry",
+    "change": "Change"
   },
   "tasbih": {
     "title": "Digital Tasbih",
