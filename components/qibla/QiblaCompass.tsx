@@ -102,11 +102,12 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
           if (orientationStarted) {
             setIsManualMode(false);
           } else {
-            // Fall back to manual mode
+            // Don't immediately fall back to manual mode - the error might provide useful info
+            console.warn('Failed to start automatic orientation tracking');
             setIsManualMode(true);
           }
         } catch (error) {
-          console.warn('Failed to start automatic orientation tracking, using manual mode:', error);
+          console.warn('Failed to start automatic orientation tracking:', error);
           setIsManualMode(true);
         }
       } else {
@@ -133,9 +134,19 @@ const QiblaCompass: React.FC<QiblaCompassProps> = ({ onBack }) => {
       }));
       setShowCalibrationInstructions(false);
     } else {
-      // Don't set main error state - fall back to manual mode instead
-      console.warn('Device orientation failed, falling back to manual mode:', result.error);
-      setIsManualMode(true);
+      // Log the specific error for debugging
+      console.warn('Device orientation failed:', result.error);
+      
+      // Show error to user if it's permission-related or important
+      if (result.error?.includes('permission') || result.error?.includes('HTTPS') || result.error?.includes('sensor')) {
+        setCompassState(prev => ({
+          ...prev,
+          error: result.error || 'Device orientation not available'
+        }));
+      } else {
+        // For other errors, just fall back to manual mode
+        setIsManualMode(true);
+      }
       setShowCalibrationInstructions(false);
     }
   };

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Location } from '../../types';
 import { useTranslation } from '../../i18n/I18nProvider';
-import { APIProvider, Map, AdvancedMarker, MapMouseEvent } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, MapMouseEvent, useMapsLibrary } from '@vis.gl/react-google-maps';
 
 interface ManualLocationInputProps {
   isOpen: boolean;
@@ -15,6 +15,8 @@ interface ManualLocationInputProps {
 const AutocompleteInput = ({ onPlaceChanged, initialValue }: { onPlaceChanged: (place: google.maps.places.PlaceResult) => void, initialValue: string }) => {
   const { t } = useTranslation('location');
   const inputRef = useRef<HTMLInputElement>(null);
+  const places = useMapsLibrary('places');
+  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
@@ -22,13 +24,19 @@ const AutocompleteInput = ({ onPlaceChanged, initialValue }: { onPlaceChanged: (
   }, [initialValue]);
 
   useEffect(() => {
-    if (!inputRef.current) return;
+    if (!places || !inputRef.current) return;
 
-    const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+    const ac = new places.Autocomplete(inputRef.current, {
       types: ['(cities)'],
     });
 
-    autocomplete.addListener('place_changed', () => {
+    setAutocomplete(ac);
+  }, [places]);
+
+  useEffect(() => {
+    if (!autocomplete) return;
+
+    const listener = autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
       if (place.geometry) {
         onPlaceChanged(place);
@@ -37,11 +45,10 @@ const AutocompleteInput = ({ onPlaceChanged, initialValue }: { onPlaceChanged: (
     });
 
     return () => {
-      if (autocomplete) {
-        google.maps.event.clearInstanceListeners(autocomplete);
-      }
+        listener.remove();
     };
-  }, [onPlaceChanged]);
+  }, [onPlaceChanged, autocomplete]);
+
 
   return (
     <input
@@ -75,7 +82,10 @@ const ManualLocationInput: React.FC<ManualLocationInputProps> = ({
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const isAutocompleteSuggestion = (target as HTMLElement).closest('.pac-container');
+
+      if (modalContentRef.current && !modalContentRef.current.contains(target) && !isAutocompleteSuggestion) {
         onClose();
       }
     };

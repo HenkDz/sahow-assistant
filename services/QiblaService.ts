@@ -119,13 +119,16 @@ export class QiblaService {
           return false;
         }
       } else {
-        // For mobile platforms, we'll need to implement native orientation tracking
-        // For now, return a mock implementation
-        callback({
-          success: false,
-          error: 'Device orientation tracking not yet implemented for mobile platforms'
-        });
-        return false;
+        // For mobile platforms (iOS/Android), use DeviceOrientationEvent
+        if (typeof DeviceOrientationEvent !== 'undefined') {
+          return this.watchWebOrientation(callback);
+        } else {
+          callback({
+            success: false,
+            error: 'Device orientation tracking not available on this device'
+          });
+          return false;
+        }
       }
 
     } catch (error) {
@@ -332,6 +335,12 @@ export class QiblaService {
       const info = await Device.getInfo();
       
       if (info.platform === 'web') {
+        // Check if we're in a secure context (HTTPS)
+        if (typeof window !== 'undefined' && !window.isSecureContext) {
+          console.warn('DeviceOrientationEvent requires HTTPS');
+          return false;
+        }
+
         // Check if DeviceOrientationEvent is available
         if (typeof DeviceOrientationEvent === 'undefined') {
           return false;
@@ -340,8 +349,8 @@ export class QiblaService {
         // For iOS 13+ devices, check if permission is required
         if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
           try {
-            const permission = await (DeviceOrientationEvent as any).requestPermission();
-            return permission === 'granted';
+            // Don't request permission here, just check if it's available
+            return true;
           } catch (error) {
             console.warn('Error checking device orientation permission:', error);
             return false;
@@ -393,6 +402,15 @@ export class QiblaService {
    */
   private watchWebOrientation(callback: (result: DeviceOrientationResult) => void): boolean {
     try {
+      // Check if we're in a secure context (HTTPS)
+      if (typeof window !== 'undefined' && !window.isSecureContext) {
+        callback({
+          success: false,
+          error: 'Device orientation requires HTTPS connection'
+        });
+        return false;
+      }
+
       // Request permission for iOS 13+ devices
       if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
         (DeviceOrientationEvent as any).requestPermission()
@@ -402,7 +420,7 @@ export class QiblaService {
             } else {
               callback({
                 success: false,
-                error: 'Device orientation permission denied'
+                error: 'Device orientation permission denied. Please enable motion sensors in your browser settings.'
               });
             }
           })
@@ -431,31 +449,71 @@ export class QiblaService {
    * Start listening to device orientation events on web
    */
   private startWebOrientationListener(callback: (result: DeviceOrientationResult) => void): void {
+    let hasReceivedValidData = false;
+    let retryCount = 0;
+    const maxRetries = 10;
+
     this.handleOrientationChange = (event: DeviceOrientationEvent) => {
-      if (event.alpha !== null) {
+      // Check for valid compass data
+      if (event.alpha !== null && event.alpha !== undefined) {
         // Alpha represents the rotation around the z-axis (compass heading)
         let orientation = event.alpha;
         
-        // Normalize to 0-360 degrees
+        // Handle different browser implementations
+        // Some browsers return values in different ranges
         if (orientation < 0) {
           orientation += 360;
         }
         
+        // Normalize to 0-360 degrees
+        orientation = orientation % 360;
+        
         this.lastKnownOrientation = orientation;
+        hasReceivedValidData = true;
         
         callback({
           success: true,
           orientation: Math.round(orientation * 100) / 100
         });
       } else {
-        callback({
-          success: false,
-          error: 'Device orientation data not available'
-        });
+        // Try alternative compass data (webkitCompassHeading for older iOS Safari)
+        const webkitEvent = event as any;
+        if (webkitEvent.webkitCompassHeading !== null && webkitEvent.webkitCompassHeading !== undefined) {
+          let orientation = 360 - webkitEvent.webkitCompassHeading; // webkit gives reversed values
+          orientation = orientation % 360;
+          
+          this.lastKnownOrientation = orientation;
+          hasReceivedValidData = true;
+          
+          callback({
+            success: true,
+            orientation: Math.round(orientation * 100) / 100
+          });
+        } else {
+          // Only report error if we haven't received valid data and have tried multiple times
+          retryCount++;
+          if (!hasReceivedValidData && retryCount >= maxRetries) {
+            callback({
+              success: false,
+              error: 'Device orientation sensor data not available. This may be due to lack of compass sensor or browser limitations.'
+            });
+          }
+        }
       }
     };
 
-    window.addEventListener('deviceorientation', this.handleOrientationChange);
+    window.addEventListener('deviceorientation', this.handleOrientationChange, true);
+    
+    // Set a timeout to check if we're receiving valid data
+    setTimeout(() => {
+      if (!hasReceivedValidData) {
+        callback({
+          success: false,
+          error: 'No compass data received after 3 seconds. Your device may not have a magnetometer/compass sensor.'
+        });
+      }
+    }, 3000);
+    
     this.orientationWatchId = 1; // Simple flag to indicate listening is active
   }
 
