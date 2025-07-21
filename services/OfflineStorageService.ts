@@ -9,6 +9,14 @@ export interface CachedPrayerTimes {
   madhab: string;
 }
 
+export interface CachedMosques {
+  mosques: any[]; // Using any to accommodate Mosque interface
+  location: Location;
+  searchRadius: number;
+  searchQuery?: string;
+  cachedAt: Date;
+}
+
 export interface OfflineData {
   prayerTimes: CachedPrayerTimes | null;
   userPreferences: UserPreferences | null;
@@ -27,13 +35,15 @@ export class OfflineStorageService {
     QIBLA_DIRECTION: 'cached_qibla_direction',
     ISLAMIC_CALENDAR: 'cached_islamic_calendar',
     REFRESH_PREFERENCES: 'refresh_preferences',
-    DISMISSED_PROMPTS: 'dismissed_refresh_prompts'
+    DISMISSED_PROMPTS: 'dismissed_refresh_prompts',
+    MOSQUES: 'cached_mosques'
   };
 
   private static readonly CACHE_EXPIRY = {
     PRAYER_TIMES: 24 * 60 * 60 * 1000, // 24 hours
     QIBLA_DIRECTION: 7 * 24 * 60 * 60 * 1000, // 7 days
-    ISLAMIC_CALENDAR: 30 * 24 * 60 * 60 * 1000 // 30 days
+    ISLAMIC_CALENDAR: 30 * 24 * 60 * 60 * 1000, // 30 days
+    MOSQUES: 2 * 60 * 60 * 1000 // 2 hours
   };
 
   /**
@@ -694,5 +704,111 @@ export class OfflineStorageService {
     } catch (error) {
       console.error('Error recording prompt dismissal:', error);
     }
+  }
+
+  /**
+   * Cache mosque search results
+   */
+  static async cacheMosques(
+    mosques: any[],
+    location: Location,
+    searchRadius: number,
+    searchQuery?: string
+  ): Promise<void> {
+    try {
+      const cachedData: CachedMosques = {
+        mosques,
+        location,
+        searchRadius,
+        searchQuery,
+        cachedAt: new Date()
+      };
+
+      await Preferences.set({
+        key: this.STORAGE_KEYS.MOSQUES,
+        value: JSON.stringify({
+          ...cachedData,
+          cachedAt: cachedData.cachedAt.toISOString()
+        })
+      });
+    } catch (error) {
+      console.error('Error caching mosques:', error);
+    }
+  }
+
+  /**
+   * Retrieve cached mosque search results
+   */
+  static async getCachedMosques(
+    location: Location,
+    searchRadius: number,
+    searchQuery?: string
+  ): Promise<any[] | null> {
+    try {
+      const { value } = await Preferences.get({ key: this.STORAGE_KEYS.MOSQUES });
+      
+      if (!value) return null;
+
+      const cached = JSON.parse(value);
+      const cachedAt = new Date(cached.cachedAt);
+      
+      // Check if cache is expired
+      const now = new Date();
+      const cacheAge = now.getTime() - cachedAt.getTime();
+      
+      if (cacheAge > this.CACHE_EXPIRY.MOSQUES) {
+        await this.clearCachedMosques();
+        return null;
+      }
+
+      // Check if location is similar (within 2km tolerance for mosques)
+      const locationDistance = this.calculateDistance(
+        location.latitude,
+        location.longitude,
+        cached.location.latitude,
+        cached.location.longitude
+      );
+
+      if (locationDistance > 2) {
+        return null; // Location too different, invalidate cache
+      }
+
+      // Check if search parameters match
+      if (cached.searchRadius !== searchRadius) {
+        return null; // Different radius, need fresh search
+      }
+
+      if (cached.searchQuery !== searchQuery) {
+        return null; // Different query, need fresh search
+      }
+
+      return cached.mosques;
+    } catch (error) {
+      console.error('Error retrieving cached mosques:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Clear cached mosque data
+   */
+  static async clearCachedMosques(): Promise<void> {
+    try {
+      await Preferences.remove({ key: this.STORAGE_KEYS.MOSQUES });
+    } catch (error) {
+      console.error('Error clearing cached mosques:', error);
+    }
+  }
+
+  /**
+   * Check if mosque cache exists and is valid
+   */
+  static async isMosqueCacheValid(
+    location: Location,
+    searchRadius: number,
+    searchQuery?: string
+  ): Promise<boolean> {
+    const cached = await this.getCachedMosques(location, searchRadius, searchQuery);
+    return cached !== null;
   }
 }

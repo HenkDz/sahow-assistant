@@ -37,6 +37,7 @@
     "@testing-library/react": "^16.3.0",
     "@types/node": "^22.16.5",
     "jsdom": "^26.1.0",
+    "task-master-ai": "^0.21.0",
     "typescript": "~5.7.3",
     "vite": "^6.3.5",
     "vitest": "^3.2.4"

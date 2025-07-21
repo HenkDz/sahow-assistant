@@ -257,7 +257,15 @@
     "openingHours": "ساعات العمل",
     "facilities": "المرافق",
     "distance": "المسافة",
-    "reviews": "التقييمات"
+    "reviews": "التقييمات",
+    "showingCachedResults": "عرض النتائج المحفوظة",
+    "refresh": "تحديث",
+    "refreshResults": "تحديث النتائج",
+    "contactAvailable": "معلومات الاتصال متاحة",
+    "contactInfo": "معلومات الاتصال",
+    "specialEvents": "البرامج والفعاليات",
+    "fullAddress": "العنوان الكامل",
+    "opening": "جاري الفتح..."
   },
   "settings": {
     "title": "الإعدادات",

@@ -257,7 +257,15 @@
     "openingHours": "Opening Hours",
     "facilities": "Facilities",
     "distance": "Distance",
-    "reviews": "Reviews"
+    "reviews": "Reviews",
+    "showingCachedResults": "Showing cached results",
+    "refresh": "Refresh",
+    "refreshResults": "Refresh Results",
+    "contactAvailable": "Contact info available",
+    "contactInfo": "Contact Information",
+    "specialEvents": "Programs & Events",
+    "fullAddress": "Full Address",
+    "opening": "Opening..."
   },
   "settings": {
     "title": "Settings",

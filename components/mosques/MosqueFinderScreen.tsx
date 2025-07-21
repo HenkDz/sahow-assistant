@@ -8,7 +8,9 @@ import OfflineIndicator from '../shared/OfflineIndicator';
 import OfflineErrorBoundary from '../shared/OfflineErrorBoundary';
 import LocationSelector from '../shared/LocationSelector';
 import { Header } from '../shared/Header';
-import { MapPinIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from '../icons/HeroIcons';
+import RadiusSelector from './RadiusSelector';
+import MosqueCard from './MosqueCard';
+import { MapPinIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon, ArrowPathIcon } from '../icons/HeroIcons';
 
 interface MosqueFinderScreenProps {
   onBack: () => void;
@@ -25,12 +27,19 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
   const [searchRadius, setSearchRadius] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [isFromCache, setIsFromCache] = useState(false);
+  const [cacheAge, setCacheAge] = useState<Date | null>(null);
 
   useEffect(() => {
     if (preferences.location) {
       searchNearbyMosques();
     }
-  }, [preferences.location, searchRadius]);
+  }, [preferences.location]);
+
+  // Don't auto-refresh when radius changes - user controls when to refresh
+  const handleRadiusChange = (newRadius: number) => {
+    setSearchRadius(newRadius);
+  };
 
   const handleLocationUpdate = (location: Location) => {
     // Location updated successfully, trigger mosque search
@@ -47,21 +56,37 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
     }
   };
 
-  const searchNearbyMosques = async () => {
+  const searchNearbyMosques = async (forceRefresh = false) => {
     if (!preferences.location) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = await mosqueService.searchNearbyMosques({
-        location: preferences.location,
-        radius: searchRadius,
-        limit: 20
-      });
+      let result;
+      
+      if (forceRefresh) {
+        // Clear cache and get fresh results
+        await mosqueService.clearMosqueCache();
+        result = await mosqueService.searchNearbyMosques({
+          location: preferences.location,
+          radius: searchRadius,
+          limit: 20
+        });
+        result = { ...result, isFromCache: false };
+      } else {
+        // Use cached results if available
+        result = await mosqueService.searchNearbyMosquesWithCache({
+          location: preferences.location,
+          radius: searchRadius,
+          limit: 20
+        });
+      }
 
       if (result.success && result.mosques) {
         setMosques(result.mosques);
+        setIsFromCache(result.isFromCache);
+        setCacheAge(result.isFromCache ? new Date() : null);
       } else {
         setError(result.error?.message || t('mosqueSearchError'));
       }
@@ -72,9 +97,9 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
     }
   };
 
-  const handleTextSearch = async () => {
+  const handleTextSearch = async (forceRefresh = false) => {
     if (!searchQuery.trim()) {
-      searchNearbyMosques();
+      searchNearbyMosques(forceRefresh);
       return;
     }
 
@@ -82,13 +107,26 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
     setError(null);
 
     try {
-      const result = await mosqueService.searchMosquesByText(
-        searchQuery,
-        preferences.location
-      );
+      let result;
+      
+      if (forceRefresh) {
+        await mosqueService.clearMosqueCache();
+        result = await mosqueService.searchMosquesByText(
+          searchQuery,
+          preferences.location
+        );
+        result = { ...result, isFromCache: false };
+      } else {
+        result = await mosqueService.searchMosquesByTextWithCache(
+          searchQuery,
+          preferences.location
+        );
+      }
 
       if (result.success && result.mosques) {
         setMosques(result.mosques);
+        setIsFromCache(result.isFromCache);
+        setCacheAge(result.isFromCache ? new Date() : null);
       } else {
         setError(result.error?.message || t('mosqueSearchError'));
       }
@@ -99,7 +137,22 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
     }
   };
 
+  const handleRefreshResults = () => {
+    if (searchQuery.trim()) {
+      handleTextSearch(true);
+    } else {
+      searchNearbyMosques(true);
+    }
+  };
 
+  const handleApplyRadiusFilter = () => {
+    setShowFilters(false);
+    if (searchQuery.trim()) {
+      handleTextSearch();
+    } else {
+      searchNearbyMosques();
+    }
+  };
 
   const formatDistance = (distance?: number) => {
     if (!distance) return '';
@@ -123,7 +176,7 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
         <div className="bg-white rounded-xl p-8 shadow-sm border border-blue-100 text-center">
           <div className="text-red-600 mb-4">{error}</div>
           <button
-            onClick={searchNearbyMosques}
+            onClick={handleRefreshResults}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
           >
             {t('retry')}
@@ -151,28 +204,31 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
 
     return (
       <div className="space-y-4">
-        {mosques.map((mosque) => (
-          <div key={mosque.id} className="bg-white rounded-xl p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 mb-1">{mosque.name}</h3>
-                <p className="text-gray-600 text-sm mb-2">{mosque.address}</p>
-                {mosque.distance && (
-                  <p className="text-xs text-blue-600 font-medium">{formatDistance(mosque.distance)}</p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 ml-4">
-                <MapPinIcon className="w-4 h-4 text-blue-600" />
-              </div>
+        {/* Cache status indicator */}
+        {isFromCache && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm text-blue-700">
+                {t('showingCachedResults')}
+              </span>
             </div>
+            <button
+              onClick={handleRefreshResults}
+              className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-100 rounded transition-colors"
+            >
+              <ArrowPathIcon className="h-3 w-3" />
+              {t('refresh')}
+            </button>
           </div>
-          /*<MosqueCard
+        )}
+
+        {mosques.map((mosque) => (
+          <MosqueCard
             key={mosque.id}
             mosque={mosque}
-            onSelect={() => handleMosqueSelect(mosque)}
-            onGetDirections={() => handleGetDirections(mosque)}
             formatDistance={formatDistance}
-          />*/
+          />
         ))}
       </div>
     );
@@ -193,35 +249,12 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
           </button>
         </div>
         
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('searchRadius')}: {searchRadius}km
-            </label>
-            <input
-              type="range"
-              min="1"
-              max="50"
-              value={searchRadius}
-              onChange={(e) => setSearchRadius(Number(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>1km</span>
-              <span>50km</span>
-            </div>
-          </div>
-          
-          <button
-            onClick={() => {
-              setShowFilters(false);
-              searchNearbyMosques();
-            }}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            {t('applyFilters')}
-          </button>
-        </div>
+        <RadiusSelector
+          value={searchRadius}
+          onChange={handleRadiusChange}
+          onApply={handleApplyRadiusFilter}
+          showApplyButton={true}
+        />
       </div>
     );
   };
@@ -233,7 +266,7 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
         
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
           {/* Offline Indicator */}
-          <OfflineIndicator onRetry={searchNearbyMosques} />
+          <OfflineIndicator onRetry={handleRefreshResults} />
 
           {/* Location Selector */}
           <LocationSelector
@@ -247,8 +280,6 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
 
           {/* Filters */}
           {showFilters && renderSearchFilters()}
-
-
 
           {/* Search Bar */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-100">
@@ -266,7 +297,7 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
             </div>
             {searchQuery && (
               <button
-                onClick={handleTextSearch}
+                onClick={() => handleTextSearch()}
                 className="mt-3 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
               >
                 {t('search')}
@@ -275,19 +306,11 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
             
             {/* Search Radius & Filters Toggle */}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">{t('radius')}:</span>
-                <select
-                  value={searchRadius}
-                  onChange={(e) => setSearchRadius(Number(e.target.value))}
-                  className="text-sm border border-gray-300 rounded px-2 py-1"
-                >
-                  <option value={5}>5km</option>
-                  <option value={10}>10km</option>
-                  <option value={20}>20km</option>
-                  <option value={50}>50km</option>
-                </select>
-              </div>
+              <RadiusSelector
+                value={searchRadius}
+                onChange={handleRadiusChange}
+                compact={true}
+              />
               
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -302,8 +325,6 @@ const MosqueFinderScreen: React.FC<MosqueFinderScreenProps> = ({ onBack }) => {
           {/* Mosque List */}
           {renderMosqueList()}
         </div>
-
-
       </div>
     </OfflineErrorBoundary>
   );
