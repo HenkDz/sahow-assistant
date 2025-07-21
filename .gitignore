@@ -13,6 +13,10 @@ dist-ssr
 *.local
 .env
 
+# local env files
+.env.local
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -26,3 +30,10 @@ dist-ssr
 
 # Kiro settings with sensitive data
 .kiro/settings/mcp.json
+
+# production
+/dist
+
+# keystore
+/android/keystore.properties
+sahw-assistant-release-key.keystore

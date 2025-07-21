@@ -3,6 +3,25 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.sahw.app"
     compileSdk rootProject.ext.compileSdkVersion
+
+    // Signing configurations
+    def keystorePropertiesFile = rootProject.file("keystore.properties")
+    def keystoreProperties = new Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['my.storeFile'])
+                storePassword keystoreProperties['my.storePassword']
+                keyAlias keystoreProperties['my.keyAlias']
+                keyPassword keystoreProperties['my.keyPassword']
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "com.sahw.app"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -20,6 +39,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
